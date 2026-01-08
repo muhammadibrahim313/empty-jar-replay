@@ -1,7 +1,9 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { motion, useScroll, useTransform, useInView } from 'framer-motion';
-import { ArrowRight, Sparkles, Heart, Calendar, Play } from 'lucide-react';
+import { ArrowRight, Sparkles, Heart, Calendar, Play, MessageCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+import FeedbackModal from '@/components/FeedbackModal';
 import jarHeroImage from '@/assets/jar-hero.png';
 import jarLogoImage from '@/assets/jar-hero.png';
 
@@ -33,6 +35,9 @@ export default function Index() {
   const jarY = useTransform(scrollYProgress, [0, 1], [0, 100]);
   const jarScale = useTransform(scrollYProgress, [0, 1], [1, 0.9]);
   const textOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
+  
+  const { user } = useAuth();
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
@@ -47,8 +52,33 @@ export default function Index() {
             <img src={jarLogoImage} alt="Empty Jar" className="w-8 h-8 object-contain rounded-lg" />
             <span className="font-display text-xl font-medium tracking-tight">Empty Jar</span>
           </motion.div>
-          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ type: "spring" as const, stiffness: 100, damping: 30 }}>
-            <Link to="/app" className="btn-primary text-sm py-2.5">Open app<ArrowRight className="w-4 h-4" /></Link>
+          
+          <motion.div 
+            initial={{ opacity: 0, x: 20 }} 
+            animate={{ opacity: 1, x: 0 }} 
+            transition={{ type: "spring" as const, stiffness: 100, damping: 30 }}
+            className="flex items-center gap-3"
+          >
+            {!user && (
+              <>
+                <Link 
+                  to="/auth/signin" 
+                  className="text-sm text-muted-foreground hover:text-foreground transition-colors hidden sm:block"
+                >
+                  Sign in
+                </Link>
+                <Link 
+                  to="/auth/signup" 
+                  className="btn-secondary text-sm py-2 px-4 hidden sm:flex"
+                >
+                  Create account
+                </Link>
+              </>
+            )}
+            <Link to="/app" className="btn-primary text-sm py-2.5">
+              Open app
+              <ArrowRight className="w-4 h-4" />
+            </Link>
           </motion.div>
         </nav>
       </header>
@@ -142,9 +172,20 @@ export default function Index() {
             <img src={jarLogoImage} alt="Empty Jar" className="w-5 h-5 object-contain rounded" />
             <span className="text-sm font-medium">Empty Jar</span>
           </div>
-          <p className="text-caption">Made with care. Collect what matters.</p>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setIsFeedbackOpen(true)}
+              className="text-caption hover:text-foreground transition-colors flex items-center gap-1.5"
+            >
+              <MessageCircle className="w-3.5 h-3.5" />
+              Feedback
+            </button>
+            <p className="text-caption">Made with care. Collect what matters.</p>
+          </div>
         </div>
       </footer>
+
+      <FeedbackModal isOpen={isFeedbackOpen} onClose={() => setIsFeedbackOpen(false)} />
     </div>
   );
 }
