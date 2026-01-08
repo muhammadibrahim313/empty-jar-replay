@@ -10,13 +10,20 @@ function FeatureCard({ icon: Icon, title, description, delay }: { icon: typeof S
   const isInView = useInView(ref, { once: true, margin: '-100px' });
 
   return (
-    <motion.div ref={ref} initial={{ opacity: 0, y: 30 }} animate={isInView ? { opacity: 1, y: 0 } : {}} transition={{ duration: 0.6, delay }} className="glass-panel p-6 md:p-8">
-      <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
-        <Icon className="w-6 h-6 text-primary" />
-      </div>
-      <h3 className="text-xl font-display font-medium mb-2">{title}</h3>
-      <p className="text-muted-foreground">{description}</p>
-    </motion.div>
+    <div ref={ref}>
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={isInView ? { opacity: 1, y: 0 } : {}}
+        transition={{ duration: 0.6, delay }}
+        className="glass-panel p-6 md:p-8"
+      >
+        <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
+          <Icon className="w-6 h-6 text-primary" />
+        </div>
+        <h3 className="text-xl font-display font-medium mb-2">{title}</h3>
+        <p className="text-muted-foreground">{description}</p>
+      </motion.div>
+    </div>
   );
 }
 

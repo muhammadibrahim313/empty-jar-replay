@@ -102,95 +102,92 @@ export default function NoteComposer({
           >
             <div className="glass-panel flex-1 overflow-hidden flex flex-col max-h-[85vh]">
               <div className="flex-1 overflow-y-auto p-6 md:p-8">
-              {/* Header */}
-              <div className="flex items-start justify-between mb-6">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-overline">Week {weekNumber}</span>
-                    {isBackfill && (
-                      <span className="text-xs px-2 py-0.5 rounded bg-secondary text-secondary-foreground">
-                        Backfill
-                      </span>
-                    )}
+                {/* Header */}
+                <div className="flex items-start justify-between mb-6">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-overline">Week {weekNumber}</span>
+                      {isBackfill && (
+                        <span className="text-xs px-2 py-0.5 rounded bg-secondary text-secondary-foreground">
+                          Backfill
+                        </span>
+                      )}
+                    </div>
+                    <h2 className="text-heading mt-1">
+                      {existingNote ? 'Edit note' : 'Add a note'}
+                    </h2>
+                    <p className="text-caption mt-1">{dateRange}</p>
                   </div>
-                  <h2 className="text-heading mt-1">
-                    {existingNote ? 'Edit note' : 'Add a note'}
-                  </h2>
-                  <p className="text-caption mt-1">{dateRange}</p>
-                </div>
-                <button
-                  onClick={onClose}
-                  className="btn-ghost p-2 -mr-2 -mt-2"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              {/* Prompt */}
-              <div className="mb-6 p-4 rounded-xl bg-secondary/50 border border-secondary">
-                <div className="flex items-center gap-2 text-secondary-foreground">
-                  <Sparkles className="w-4 h-4" />
-                  <span className="text-sm font-medium">{prompt}</span>
-                </div>
-              </div>
-
-              {/* Form */}
-              <div className="space-y-5">
-                {/* Title (optional) */}
-                <div>
-                  <input
-                    type="text"
-                    placeholder="Give it a title (optional)"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    className="input-premium text-lg font-display"
-                  />
+                  <button
+                    onClick={onClose}
+                    className="btn-ghost p-2 -mr-2 -mt-2"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
                 </div>
 
-                {/* Body */}
-                <div>
-                  <textarea
-                    placeholder="Write your note..."
-                    value={body}
-                    onChange={(e) => setBody(e.target.value)}
-                    rows={4}
-                    className="input-premium resize-none"
-                  />
-                </div>
-
-                {/* Mood */}
-                <MoodSelector value={mood} onChange={setMood} />
-
-                {/* Moment Type */}
-                <MomentTypeSelector value={momentType} onChange={setMomentType} />
-
-                {/* Tags */}
-                <div className="space-y-2">
-                  <label className="text-caption block">Add tags</label>
-                  <div className="flex flex-wrap gap-2">
-                    {SUGGESTED_TAGS.map((tag) => (
-                      <motion.button
-                        key={tag}
-                        type="button"
-                        onClick={() => toggleTag(tag)}
-                        className={`tag-chip ${selectedTags.includes(tag) ? 'selected' : ''}`}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                      >
-                        #{tag}
-                      </motion.button>
-                    ))}
+                {/* Prompt */}
+                <div className="mb-6 p-4 rounded-xl bg-secondary/50 border border-secondary">
+                  <div className="flex items-center gap-2 text-secondary-foreground">
+                    <Sparkles className="w-4 h-4" />
+                    <span className="text-sm font-medium">{prompt}</span>
                   </div>
                 </div>
-              </div>
+
+                {/* Form */}
+                <div className="space-y-5">
+                  {/* Title (optional) */}
+                  <div>
+                    <input
+                      type="text"
+                      placeholder="Give it a title (optional)"
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      className="input-premium text-lg font-display"
+                    />
+                  </div>
+
+                  {/* Body */}
+                  <div>
+                    <textarea
+                      placeholder="Write your note..."
+                      value={body}
+                      onChange={(e) => setBody(e.target.value)}
+                      rows={4}
+                      className="input-premium resize-none"
+                    />
+                  </div>
+
+                  {/* Mood */}
+                  <MoodSelector value={mood} onChange={setMood} />
+
+                  {/* Moment Type */}
+                  <MomentTypeSelector value={momentType} onChange={setMomentType} />
+
+                  {/* Tags */}
+                  <div className="space-y-2">
+                    <label className="text-caption block">Add tags</label>
+                    <div className="flex flex-wrap gap-2">
+                      {SUGGESTED_TAGS.map((tag) => (
+                        <motion.button
+                          key={tag}
+                          type="button"
+                          onClick={() => toggleTag(tag)}
+                          className={`tag-chip ${selectedTags.includes(tag) ? 'selected' : ''}`}
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          #{tag}
+                        </motion.button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
               </div>
 
               {/* Actions - fixed at bottom */}
-              <div className="flex gap-3 p-6 md:p-8 pt-4 border-t border-border bg-card/80">
-                <button
-                  onClick={onClose}
-                  className="btn-secondary flex-1"
-                >
+              <div className="shrink-0 flex gap-3 p-6 md:p-8 pt-4 border-t border-border bg-card/80">
+                <button onClick={onClose} className="btn-secondary flex-1">
                   Cancel
                 </button>
                 <button
