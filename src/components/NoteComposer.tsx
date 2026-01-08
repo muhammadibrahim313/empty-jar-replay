@@ -98,9 +98,10 @@ export default function NoteComposer({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed inset-4 md:inset-auto md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-lg z-50"
+            className="fixed inset-4 md:inset-auto md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-lg z-50 flex flex-col"
           >
-            <div className="glass-panel h-full md:h-auto max-h-[90vh] overflow-y-auto p-6 md:p-8">
+            <div className="glass-panel flex-1 overflow-hidden flex flex-col max-h-[85vh]">
+              <div className="flex-1 overflow-y-auto p-6 md:p-8">
               {/* Header */}
               <div className="flex items-start justify-between mb-6">
                 <div>
@@ -182,9 +183,10 @@ export default function NoteComposer({
                   </div>
                 </div>
               </div>
+              </div>
 
-              {/* Actions */}
-              <div className="flex gap-3 mt-8">
+              {/* Actions - fixed at bottom */}
+              <div className="flex gap-3 p-6 md:p-8 pt-4 border-t border-border bg-card/80">
                 <button
                   onClick={onClose}
                   className="btn-secondary flex-1"
