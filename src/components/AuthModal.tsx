@@ -79,9 +79,9 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed inset-4 md:inset-auto md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-sm z-50"
+            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-2rem)] max-w-sm z-50"
           >
-            <div className="glass-panel h-full md:h-auto p-6 md:p-8">
+            <div className="glass-panel p-6 md:p-8 max-h-[90vh] overflow-y-auto">
               {/* Header */}
               <div className="flex items-start justify-between mb-6">
                 <div className="flex items-center gap-3">
