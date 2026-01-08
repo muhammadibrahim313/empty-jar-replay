@@ -1,20 +1,8 @@
-import { Suspense, lazy, useRef } from 'react';
+import { useRef } from 'react';
 import { motion, useScroll, useTransform, useInView } from 'framer-motion';
 import { ArrowRight, Sparkles, Heart, Calendar, Play } from 'lucide-react';
 import { Link } from 'react-router-dom';
-
-const PremiumJarScene = lazy(() => import('@/components/jar/PremiumJarScene'));
-function JarLoader() {
-  return (
-    <div className="w-full h-full flex items-center justify-center">
-      <motion.div 
-        animate={{ rotate: 360 }}
-        transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-        className="w-12 h-12 border-2 border-primary border-t-transparent rounded-full"
-      />
-    </div>
-  );
-}
+import jarHeroImage from '@/assets/jar-hero.jpg';
 
 function FeatureCard({ icon: Icon, title, description, delay }: { icon: typeof Sparkles; title: string; description: string; delay: number }) {
   const ref = useRef(null);
@@ -67,10 +55,20 @@ export default function Index() {
                 <Link to="/app" className="btn-secondary text-lg px-8 py-4"><Play className="w-5 h-5" />See a sample year</Link>
               </motion.div>
             </motion.div>
-            <motion.div style={{ y: jarY, scale: jarScale }} className="order-1 lg:order-2 h-[400px] sm:h-[500px] lg:h-[600px]">
-              <Suspense fallback={<JarLoader />}>
-                <PremiumJarScene className="w-full h-full" />
-              </Suspense>
+            <motion.div style={{ y: jarY, scale: jarScale }} className="order-1 lg:order-2 flex items-center justify-center h-[400px] sm:h-[500px] lg:h-[600px]">
+              <div className="relative">
+                {/* Soft glow behind jar */}
+                <div className="absolute inset-0 blur-3xl opacity-60 bg-gradient-to-b from-amber-200/40 via-orange-200/30 to-transparent scale-110" />
+                <motion.img 
+                  src={jarHeroImage} 
+                  alt="Mason jar filled with warm fairy lights" 
+                  className="relative z-10 w-auto h-[350px] sm:h-[450px] lg:h-[550px] object-contain drop-shadow-2xl"
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.8, ease: 'easeOut' }}
+                  whileHover={{ scale: 1.02 }}
+                />
+              </div>
             </motion.div>
           </div>
         </div>
