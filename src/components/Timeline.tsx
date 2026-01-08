@@ -1,14 +1,15 @@
 import { motion } from 'framer-motion';
 import { WeekInfo } from '@/lib/types';
+import { parseWeekKey } from '@/lib/storage';
 
 interface TimelineProps {
   weeks: WeekInfo[];
-  currentWeek: number;
-  selectedWeek: number;
-  onSelectWeek: (week: number) => void;
+  currentWeekKey: string;
+  selectedWeekKey: string;
+  onSelectWeek: (weekKey: string) => void;
 }
 
-export default function Timeline({ weeks, currentWeek, selectedWeek, onSelectWeek }: TimelineProps) {
+export default function Timeline({ weeks, currentWeekKey, selectedWeekKey, onSelectWeek }: TimelineProps) {
   return (
     <div className="w-full px-4 py-6">
       <div className="flex items-center justify-between mb-3">
@@ -23,15 +24,15 @@ export default function Timeline({ weeks, currentWeek, selectedWeek, onSelectWee
         {/* Weeks */}
         <div className="relative flex items-center justify-between">
           {weeks.map((week) => {
-            const isActive = week.weekNumber === selectedWeek;
-            const isCurrent = week.weekNumber === currentWeek;
+            const isActive = week.weekKey === selectedWeekKey;
+            const isCurrent = week.weekKey === currentWeekKey;
             const isFilled = week.hasNote;
-            const isFuture = week.weekNumber > currentWeek;
+            const isFuture = week.isFuture;
 
             return (
               <motion.button
-                key={week.weekNumber}
-                onClick={() => !isFuture && onSelectWeek(week.weekNumber)}
+                key={week.weekKey}
+                onClick={() => !isFuture && onSelectWeek(week.weekKey)}
                 disabled={isFuture}
                 className={`
                   timeline-marker relative
@@ -80,8 +81,8 @@ export default function Timeline({ weeks, currentWeek, selectedWeek, onSelectWee
       {/* Week label */}
       <div className="text-center mt-4">
         <span className="text-caption">
-          Week {selectedWeek} of 52
-          {selectedWeek === currentWeek && (
+          Week {parseWeekKey(selectedWeekKey).weekNumber} of 52
+          {selectedWeekKey === currentWeekKey && (
             <span className="ml-2 text-primary font-medium">• This week</span>
           )}
         </span>

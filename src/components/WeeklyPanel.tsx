@@ -1,18 +1,23 @@
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Plus, ChevronLeft, ChevronRight, Sparkles, Calendar, Play } from 'lucide-react';
+import { Plus, Edit3, ChevronLeft, ChevronRight, Sparkles, Calendar, Play, Clock } from 'lucide-react';
 import { Note, WeekInfo, MOMENT_TYPES, MOOD_COLORS, MOOD_LABELS } from '@/lib/types';
+import { formatDateRange } from '@/lib/storage';
 
 interface WeeklyPanelProps {
   week: WeekInfo;
   note?: Note;
   isFirstTime: boolean;
+  hideNotes: boolean;
   onAddNote: () => void;
+  onEditNote: () => void;
   onPrevWeek: () => void;
   onNextWeek: () => void;
-  currentWeek: number;
+  currentWeekKey: string;
+  canEditNote: boolean;
   canReplay: boolean;
   notesCount: number;
+  onStartReplay: () => void;
 }
 
 const PROMPTS = [
@@ -28,24 +33,22 @@ export default function WeeklyPanel({
   week, 
   note, 
   isFirstTime,
+  hideNotes,
   onAddNote, 
+  onEditNote,
   onPrevWeek, 
   onNextWeek,
-  currentWeek,
+  currentWeekKey,
+  canEditNote,
   canReplay,
   notesCount,
+  onStartReplay,
 }: WeeklyPanelProps) {
   const prompt = useMemo(() => {
     return PROMPTS[week.weekNumber % PROMPTS.length];
   }, [week.weekNumber]);
 
-  const formatDateRange = (start: Date, end: Date) => {
-    const opts: Intl.DateTimeFormatOptions = { month: 'short', day: 'numeric' };
-    return `${start.toLocaleDateString('en-US', opts)} – ${end.toLocaleDateString('en-US', opts)}`;
-  };
-
-  const isCurrentWeek = week.weekNumber === currentWeek;
-  const isFuture = week.weekNumber > currentWeek;
+  const isCurrentWeek = week.weekKey === currentWeekKey;
   const momentType = note ? MOMENT_TYPES.find(t => t.value === note.momentType) : null;
 
   return (
@@ -88,7 +91,7 @@ export default function WeeklyPanel({
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto">
-        {isFuture ? (
+        {week.isFuture ? (
           /* Future week */
           <motion.div 
             initial={{ opacity: 0, y: 10 }}
@@ -112,14 +115,22 @@ export default function WeeklyPanel({
             animate={{ opacity: 1, y: 0 }}
             className="space-y-4"
           >
+            {/* Backfill badge */}
+            {note.isBackfill && (
+              <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-secondary text-secondary-foreground text-xs">
+                <Clock className="w-3 h-3" />
+                Backfilled
+              </div>
+            )}
+
             {/* Note card */}
             <div className="glass-panel p-6">
               {note.title && (
-                <h3 className="text-xl font-display font-medium mb-2">
+                <h3 className={`text-xl font-display font-medium mb-2 ${hideNotes ? 'blur-sm select-none' : ''}`}>
                   {note.title}
                 </h3>
               )}
-              <p className="text-body text-foreground/90 leading-relaxed">
+              <p className={`text-body text-foreground/90 leading-relaxed ${hideNotes ? 'blur-sm select-none' : ''}`}>
                 {note.body}
               </p>
 
@@ -145,7 +156,7 @@ export default function WeeklyPanel({
 
               {/* Tags */}
               {note.tags.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-3">
+                <div className={`flex flex-wrap gap-2 mt-3 ${hideNotes ? 'blur-sm' : ''}`}>
                   {note.tags.map(tag => (
                     <span key={tag} className="text-caption text-primary">
                       #{tag}
@@ -154,6 +165,19 @@ export default function WeeklyPanel({
                 </div>
               )}
             </div>
+
+            {/* Edit button (only for current week) */}
+            {canEditNote && (
+              <motion.button
+                onClick={onEditNote}
+                className="btn-secondary w-full"
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
+              >
+                <Edit3 className="w-4 h-4" />
+                Edit this note
+              </motion.button>
+            )}
           </motion.div>
         ) : isFirstTime ? (
           /* First time user */
@@ -190,7 +214,9 @@ export default function WeeklyPanel({
             <div className="glass-panel p-6 mb-6 text-left">
               <div className="flex items-center gap-2 text-primary mb-2">
                 <Sparkles className="w-4 h-4" />
-                <span className="text-caption text-primary font-medium">This week's prompt</span>
+                <span className="text-caption text-primary font-medium">
+                  {week.isPast ? 'Backfill prompt' : "This week's prompt"}
+                </span>
               </div>
               <p className="text-subheading text-foreground">
                 {prompt}
@@ -204,13 +230,13 @@ export default function WeeklyPanel({
               whileTap={{ scale: 0.99 }}
             >
               <Plus className="w-4 h-4" />
-              Add this week's note
+              {week.isPast ? 'Add a backfill note' : "Add this week's note"}
             </motion.button>
 
             {/* Missed week hint */}
-            {!isCurrentWeek && (
+            {week.isPast && (
               <p className="text-caption mt-4">
-                It's okay to add notes for past weeks. Your memories are still valid.
+                This note will be labeled as "Backfilled" since it's for a past week.
               </p>
             )}
           </motion.div>
@@ -231,6 +257,7 @@ export default function WeeklyPanel({
             )}
           </div>
           <motion.button
+            onClick={onStartReplay}
             disabled={!canReplay}
             className="btn-secondary text-sm py-2 px-4 disabled:opacity-40"
             whileHover={canReplay ? { scale: 1.02 } : {}}
