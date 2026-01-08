@@ -1,10 +1,9 @@
-import { Suspense, useRef, useState, useMemo, useEffect } from 'react';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { Suspense, useRef, useState, useMemo } from 'react';
+import { Canvas, useFrame } from '@react-three/fiber';
 import { 
   Environment, 
   Float, 
   MeshTransmissionMaterial,
-  PerspectiveCamera,
   Html,
   ContactShadows
 } from '@react-three/drei';
@@ -15,18 +14,18 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import jarFallbackImage from '@/assets/jar-hero-fallback.jpg';
 
 // Fairy light component with twinkling
-function FairyLight({ position, phase }: { position: [number, number, number]; phase: number }) {
+function FairyLight({ position, phase, intensity = 0.4 }: { position: [number, number, number]; phase: number; intensity?: number }) {
   const lightRef = useRef<THREE.PointLight>(null);
   const meshRef = useRef<THREE.Mesh>(null);
   
   useFrame((state) => {
     const time = state.clock.elapsedTime;
     // Slow twinkle with random phase
-    const intensity = 0.3 + Math.sin(time * 0.8 + phase) * 0.15 + Math.sin(time * 1.3 + phase * 2) * 0.1;
-    const scale = 0.8 + Math.sin(time * 0.8 + phase) * 0.2;
+    const twinkle = 0.6 + Math.sin(time * 0.6 + phase) * 0.25 + Math.sin(time * 1.1 + phase * 1.7) * 0.15;
+    const scale = 0.7 + Math.sin(time * 0.6 + phase) * 0.3;
     
     if (lightRef.current) {
-      lightRef.current.intensity = intensity;
+      lightRef.current.intensity = intensity * twinkle;
     }
     if (meshRef.current) {
       meshRef.current.scale.setScalar(scale);
@@ -36,75 +35,53 @@ function FairyLight({ position, phase }: { position: [number, number, number]; p
   return (
     <group position={position}>
       <mesh ref={meshRef}>
-        <sphereGeometry args={[0.025, 8, 8]} />
-        <meshBasicMaterial color="#FBBF24" transparent opacity={0.9} />
+        <sphereGeometry args={[0.018, 6, 6]} />
+        <meshBasicMaterial color="#FFD54F" transparent opacity={0.95} />
       </mesh>
       <pointLight
         ref={lightRef}
-        color="#F59E0B"
-        intensity={0.3}
-        distance={0.8}
+        color="#FFAB00"
+        intensity={intensity}
+        distance={0.6}
         decay={2}
       />
     </group>
   );
 }
 
-// Wire string for fairy lights
-function LightWire() {
-  const points = useMemo(() => {
-    const pts: THREE.Vector3[] = [];
-    for (let i = 0; i < 20; i++) {
-      const t = i / 19;
-      const angle = t * Math.PI * 3;
-      const radius = 0.25 + Math.sin(t * Math.PI) * 0.1;
-      const y = -0.4 + t * 0.7;
-      pts.push(new THREE.Vector3(
-        Math.cos(angle) * radius,
-        y,
-        Math.sin(angle) * radius
-      ));
+// Dense wire string for fairy lights - more tangled/organic
+function LightWires() {
+  const wires = useMemo(() => {
+    const allWires: THREE.CatmullRomCurve3[] = [];
+    // Create multiple interweaving wire strands
+    for (let strand = 0; strand < 4; strand++) {
+      const pts: THREE.Vector3[] = [];
+      const offset = strand * 0.8;
+      for (let i = 0; i < 25; i++) {
+        const t = i / 24;
+        const angle = t * Math.PI * 4 + offset;
+        const radius = 0.15 + Math.sin(t * Math.PI * 2 + strand) * 0.12;
+        const y = -0.45 + t * 0.9;
+        pts.push(new THREE.Vector3(
+          Math.cos(angle) * radius + (Math.random() - 0.5) * 0.05,
+          y + (Math.random() - 0.5) * 0.03,
+          Math.sin(angle) * radius + (Math.random() - 0.5) * 0.05
+        ));
+      }
+      allWires.push(new THREE.CatmullRomCurve3(pts));
     }
-    return pts;
+    return allWires;
   }, []);
 
-  const curve = useMemo(() => new THREE.CatmullRomCurve3(points), [points]);
-
   return (
-    <mesh>
-      <tubeGeometry args={[curve, 64, 0.004, 4, false]} />
-      <meshBasicMaterial color="#92400E" transparent opacity={0.6} />
-    </mesh>
-  );
-}
-
-// Folded paper note inside the jar
-interface PaperNoteProps {
-  position: [number, number, number];
-  rotation: [number, number, number];
-  color: string;
-  scale?: number;
-}
-
-function PaperNote({ position, rotation, color, scale = 1 }: PaperNoteProps) {
-  const meshRef = useRef<THREE.Mesh>(null);
-  
-  useFrame((state) => {
-    if (meshRef.current) {
-      // Subtle floating movement
-      meshRef.current.position.y = position[1] + Math.sin(state.clock.elapsedTime * 0.5 + position[0] * 10) * 0.01;
-    }
-  });
-
-  return (
-    <mesh ref={meshRef} position={position} rotation={rotation} scale={scale}>
-      <boxGeometry args={[0.18, 0.1, 0.015]} />
-      <meshStandardMaterial 
-        color={color}
-        roughness={0.9}
-        metalness={0}
-      />
-    </mesh>
+    <group>
+      {wires.map((curve, i) => (
+        <mesh key={i}>
+          <tubeGeometry args={[curve, 50, 0.003, 3, false]} />
+          <meshBasicMaterial color="#8B6914" transparent opacity={0.5} />
+        </mesh>
+      ))}
+    </group>
   );
 }
 
@@ -148,37 +125,27 @@ function GlassJar({ onHover }: { onHover?: (hovered: boolean) => void }) {
     document.body.style.cursor = 'auto';
   };
 
-  // Fairy lights positions with random phases
+  // Dense fairy lights positions - many more lights filling the jar
   const fairyLights = useMemo(() => {
-    const lights: { position: [number, number, number]; phase: number }[] = [];
-    for (let i = 0; i < 12; i++) {
-      const t = i / 11;
-      const angle = t * Math.PI * 3 + Math.random() * 0.5;
-      const radius = 0.22 + Math.random() * 0.1;
-      const y = -0.35 + t * 0.65;
+    const lights: { position: [number, number, number]; phase: number; intensity: number }[] = [];
+    // Create dense clusters of lights
+    for (let i = 0; i < 35; i++) {
+      const t = i / 34;
+      // Spiral pattern with randomization
+      const angle = t * Math.PI * 6 + Math.random() * 0.8;
+      const radius = 0.12 + Math.random() * 0.18;
+      const y = -0.42 + t * 0.85;
       lights.push({
         position: [
-          Math.cos(angle) * radius,
-          y,
-          Math.sin(angle) * radius
+          Math.cos(angle) * radius + (Math.random() - 0.5) * 0.08,
+          y + (Math.random() - 0.5) * 0.06,
+          Math.sin(angle) * radius + (Math.random() - 0.5) * 0.08
         ] as [number, number, number],
-        phase: Math.random() * Math.PI * 2
+        phase: Math.random() * Math.PI * 2,
+        intensity: 0.2 + Math.random() * 0.25
       });
     }
     return lights;
-  }, []);
-
-  // Paper notes
-  const paperNotes = useMemo(() => {
-    const colors = ['#FEF3C7', '#ECFDF5', '#FEE2E2', '#EDE9FE', '#FEF9C3', '#DBEAFE'];
-    return [
-      { position: [-0.1, -0.32, 0.05] as [number, number, number], rotation: [0.1, 0.8, 0.2] as [number, number, number], color: colors[0] },
-      { position: [0.08, -0.28, -0.08] as [number, number, number], rotation: [-0.1, -0.5, 0.1] as [number, number, number], color: colors[1] },
-      { position: [0.02, -0.22, 0.12] as [number, number, number], rotation: [0.2, 1.2, -0.1] as [number, number, number], color: colors[2] },
-      { position: [-0.12, -0.15, -0.05] as [number, number, number], rotation: [-0.15, 2.1, 0.15] as [number, number, number], color: colors[3] },
-      { position: [0.1, -0.08, 0.02] as [number, number, number], rotation: [0.1, -0.3, -0.2] as [number, number, number], color: colors[4] },
-      { position: [-0.05, 0.0, 0.08] as [number, number, number], rotation: [0.05, 0.6, 0.1] as [number, number, number], color: colors[5] },
-    ];
   }, []);
 
   return (
@@ -187,107 +154,120 @@ function GlassJar({ onHover }: { onHover?: (hovered: boolean) => void }) {
       onPointerOver={handlePointerOver}
       onPointerOut={handlePointerOut}
     >
-      {/* Mason jar body - realistic glass with thickness */}
+      {/* Mason jar body - clear glass with slight blue tint like reference */}
       <mesh position={[0, 0, 0]}>
-        <cylinderGeometry args={[0.5, 0.45, 1.2, 32, 1, true]} />
+        <cylinderGeometry args={[0.42, 0.38, 1.1, 32, 1, true]} />
         <MeshTransmissionMaterial
           backside
           samples={16}
           resolution={512}
-          transmission={0.92}
-          roughness={0.02}
-          thickness={0.35}
-          ior={1.52}
-          chromaticAberration={0.02}
-          anisotropy={0.05}
-          distortion={0.05}
-          distortionScale={0.1}
-          temporalDistortion={0.05}
+          transmission={0.95}
+          roughness={0.01}
+          thickness={0.25}
+          ior={1.5}
+          chromaticAberration={0.015}
+          anisotropy={0.02}
+          distortion={0.02}
+          distortionScale={0.05}
+          temporalDistortion={0.02}
           clearcoat={1}
-          attenuationDistance={0.4}
-          attenuationColor="#FFF5E1"
-          color={hovered ? "#FFFCF5" : "#FFF8ED"}
+          attenuationDistance={0.6}
+          attenuationColor="#E8F4FC"
+          color={hovered ? "#FCFEFF" : "#F8FCFF"}
         />
       </mesh>
 
       {/* Jar bottom - thick glass */}
-      <mesh position={[0, -0.6, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <circleGeometry args={[0.45, 32]} />
+      <mesh position={[0, -0.55, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <circleGeometry args={[0.38, 32]} />
         <MeshTransmissionMaterial
           samples={8}
           resolution={256}
-          transmission={0.85}
-          roughness={0.05}
-          thickness={0.15}
-          ior={1.52}
+          transmission={0.9}
+          roughness={0.03}
+          thickness={0.12}
+          ior={1.5}
           clearcoat={1}
-          color="#FFF8ED"
+          color="#F8FCFF"
         />
       </mesh>
 
-      {/* Mason jar threading rim */}
-      <mesh position={[0, 0.6, 0]}>
-        <torusGeometry args={[0.48, 0.04, 8, 32]} />
-        <meshStandardMaterial 
-          color="#E5E7EB"
-          roughness={0.3}
-          metalness={0.8}
-        />
-      </mesh>
-      <mesh position={[0, 0.55, 0]}>
-        <torusGeometry args={[0.47, 0.025, 6, 32]} />
-        <meshStandardMaterial 
-          color="#D1D5DB"
-          roughness={0.4}
-          metalness={0.7}
+      {/* Wire bail clasp lid - glass top */}
+      <mesh position={[0, 0.58, 0]}>
+        <cylinderGeometry args={[0.4, 0.42, 0.08, 32]} />
+        <MeshTransmissionMaterial
+          samples={8}
+          resolution={256}
+          transmission={0.9}
+          roughness={0.02}
+          thickness={0.08}
+          ior={1.5}
+          clearcoat={1}
+          color="#F8FCFF"
         />
       </mesh>
 
-      {/* Cork lid */}
-      <mesh position={[0, 0.72, 0]}>
-        <cylinderGeometry args={[0.42, 0.46, 0.22, 32]} />
+      {/* Metal rim around lid */}
+      <mesh position={[0, 0.54, 0]}>
+        <torusGeometry args={[0.41, 0.025, 8, 32]} />
         <meshStandardMaterial 
-          color="#C4A574"
-          roughness={0.95}
-          metalness={0}
-        />
-      </mesh>
-      
-      {/* Cork texture details */}
-      <mesh position={[0, 0.83, 0]}>
-        <cylinderGeometry args={[0.38, 0.42, 0.02, 32]} />
-        <meshStandardMaterial 
-          color="#B8956A"
-          roughness={1}
-          metalness={0}
+          color="#4A5568"
+          roughness={0.35}
+          metalness={0.85}
         />
       </mesh>
 
-      {/* Fairy light wire */}
-      <LightWire />
+      {/* Wire bail clasp - left side */}
+      <group position={[-0.38, 0.4, 0]}>
+        <mesh rotation={[0, 0, Math.PI * 0.15]}>
+          <torusGeometry args={[0.12, 0.012, 6, 12, Math.PI]} />
+          <meshStandardMaterial color="#2D3748" roughness={0.3} metalness={0.9} />
+        </mesh>
+        <mesh position={[0.08, -0.08, 0]}>
+          <cylinderGeometry args={[0.01, 0.01, 0.15, 6]} />
+          <meshStandardMaterial color="#2D3748" roughness={0.3} metalness={0.9} />
+        </mesh>
+      </group>
 
-      {/* Fairy lights */}
+      {/* Wire bail clasp - right side */}
+      <group position={[0.38, 0.4, 0]}>
+        <mesh rotation={[0, 0, -Math.PI * 0.15]}>
+          <torusGeometry args={[0.12, 0.012, 6, 12, Math.PI]} />
+          <meshStandardMaterial color="#2D3748" roughness={0.3} metalness={0.9} />
+        </mesh>
+        <mesh position={[-0.08, -0.08, 0]}>
+          <cylinderGeometry args={[0.01, 0.01, 0.15, 6]} />
+          <meshStandardMaterial color="#2D3748" roughness={0.3} metalness={0.9} />
+        </mesh>
+      </group>
+
+      {/* Top wire clasp handle */}
+      <mesh position={[0, 0.72, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <torusGeometry args={[0.15, 0.012, 6, 16, Math.PI]} />
+        <meshStandardMaterial color="#2D3748" roughness={0.3} metalness={0.9} />
+      </mesh>
+
+      {/* Dense fairy light wires */}
+      <LightWires />
+
+      {/* Many fairy lights */}
       {fairyLights.map((light, i) => (
-        <FairyLight key={i} position={light.position} phase={light.phase} />
+        <FairyLight key={i} position={light.position} phase={light.phase} intensity={light.intensity} />
       ))}
 
-      {/* Paper notes */}
-      {paperNotes.map((note, i) => (
-        <PaperNote
-          key={i}
-          position={note.position}
-          rotation={note.rotation}
-          color={note.color}
-          scale={0.9 + Math.random() * 0.2}
-        />
-      ))}
-
-      {/* Inner ambient glow */}
+      {/* Strong inner ambient glow - warm amber */}
       <pointLight
         position={[0, -0.1, 0]}
-        intensity={hovered ? 1.2 : 0.8}
-        color="#F59E0B"
-        distance={1.5}
+        intensity={hovered ? 2.0 : 1.5}
+        color="#FFAB00"
+        distance={1.8}
+        decay={2}
+      />
+      <pointLight
+        position={[0, 0.2, 0]}
+        intensity={hovered ? 1.0 : 0.7}
+        color="#FFD54F"
+        distance={1.2}
         decay={2}
       />
     </group>
