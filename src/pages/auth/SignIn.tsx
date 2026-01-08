@@ -22,7 +22,6 @@ export default function SignIn() {
     e.preventDefault();
     setError('');
 
-    // Validate
     const result = signInSchema.safeParse({ email, password });
     if (!result.success) {
       setError(result.error.errors[0].message);
@@ -63,38 +62,40 @@ export default function SignIn() {
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md"
       >
-        <div className="glass-panel p-8">
+        <div className="bg-card rounded-3xl border border-border shadow-lg p-8 md:p-10">
           {/* Header */}
           <div className="text-center mb-8">
-            <Link to="/" className="inline-flex items-center gap-2 mb-6">
-              <img src={jarLogoImage} alt="Empty Jar" className="w-10 h-10 object-contain rounded-lg" />
+            <Link to="/" className="inline-flex items-center justify-center mb-6">
+              <img src={jarLogoImage} alt="Empty Jar" className="w-12 h-12 object-contain rounded-xl" />
             </Link>
             <h1 className="text-2xl font-display font-medium mb-2">Welcome back</h1>
             <p className="text-muted-foreground">Sign in to access your jar</p>
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium mb-1.5">
+              <label htmlFor="email" className="block text-sm font-medium mb-2">
                 Email
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 rounded-md bg-muted/60 flex items-center justify-center">
+                  <Mail className="w-3 h-3 text-muted-foreground" />
+                </div>
                 <input
                   id="email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
-                  className="input-field pl-10"
+                  className="w-full h-12 pl-12 pr-4 rounded-xl border-2 border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all"
                   autoComplete="email"
                 />
               </div>
             </div>
 
             <div>
-              <div className="flex items-center justify-between mb-1.5">
+              <div className="flex items-center justify-between mb-2">
                 <label htmlFor="password" className="block text-sm font-medium">
                   Password
                 </label>
@@ -103,21 +104,23 @@ export default function SignIn() {
                 </Link>
               </div>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <div className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 rounded-md bg-muted/60 flex items-center justify-center">
+                  <Lock className="w-3 h-3 text-muted-foreground" />
+                </div>
                 <input
                   id="password"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="input-field pl-10"
+                  className="w-full h-12 pl-12 pr-4 rounded-xl border-2 border-border bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/10 transition-all"
                   autoComplete="current-password"
                 />
               </div>
             </div>
 
             {error && (
-              <div className="flex items-start gap-2 text-sm text-destructive bg-destructive/5 p-3 rounded-lg">
+              <div className="flex items-start gap-2.5 text-sm text-destructive bg-destructive/5 p-4 rounded-xl">
                 <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
                 <span>{error}</span>
               </div>
@@ -126,7 +129,7 @@ export default function SignIn() {
             <button
               type="submit"
               disabled={isLoading}
-              className="btn-primary w-full"
+              className="btn-primary w-full py-3.5 text-base mt-2"
             >
               {isLoading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -137,10 +140,10 @@ export default function SignIn() {
           </form>
 
           {/* Footer */}
-          <div className="mt-6 text-center">
+          <div className="mt-8 text-center">
             <p className="text-sm text-muted-foreground">
               Don't have an account?{' '}
-              <Link to="/auth/signup" className="text-primary hover:underline">
+              <Link to="/auth/signup" className="text-primary font-medium hover:underline">
                 Create one
               </Link>
             </p>
@@ -148,8 +151,8 @@ export default function SignIn() {
 
           {/* Back link */}
           <div className="mt-6 pt-6 border-t border-border">
-            <Link to="/app" className="text-sm text-muted-foreground hover:text-foreground flex items-center justify-center gap-1">
-              <ArrowLeft className="w-3 h-3" />
+            <Link to="/app" className="text-sm text-muted-foreground hover:text-foreground flex items-center justify-center gap-1.5 transition-colors">
+              <ArrowLeft className="w-3.5 h-3.5" />
               Back to app
             </Link>
           </div>
