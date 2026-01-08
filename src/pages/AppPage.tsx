@@ -1,6 +1,6 @@
-import { Suspense, lazy, useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Settings, Eye, EyeOff, Search, Play, LogIn, LogOut, Wifi, WifiOff } from 'lucide-react';
+import { ArrowLeft, Settings, Eye, EyeOff, Search, Play, LogIn, LogOut, WifiOff } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useNotes } from '@/hooks/useNotes';
 import { useAuth } from '@/contexts/AuthContext';
@@ -14,19 +14,7 @@ import NoteViewer from '@/components/NoteViewer';
 import AuthModal from '@/components/AuthModal';
 import SyncPrompt from '@/components/SyncPrompt';
 import { Note } from '@/lib/types';
-
-const JarScene = lazy(() => import('@/components/jar/JarScene'));
-
-function JarLoader() {
-  return (
-    <div className="w-full h-full flex items-center justify-center">
-      <div className="text-center">
-        <div className="w-12 h-12 mx-auto mb-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-        <p className="text-caption">Loading your jar...</p>
-      </div>
-    </div>
-  );
-}
+import jarLogoImage from '@/assets/jar-hero.png';
 
 export default function AppPage() {
   const navigate = useNavigate();
@@ -167,8 +155,8 @@ export default function AppPage() {
       {/* Header */}
       <header className={`fixed left-0 right-0 z-40 bg-background/80 backdrop-blur-md border-b border-border ${showReminder && !showSyncPrompt ? 'top-14' : 'top-0'}`}>
         <div className="container-wide flex items-center justify-between h-16">
-          <Link to="/" className="btn-ghost -ml-2">
-            <ArrowLeft className="w-4 h-4" />
+          <Link to="/" className="btn-ghost -ml-2 flex items-center gap-2">
+            <img src={jarLogoImage} alt="Empty Jar" className="w-6 h-6 object-contain rounded" />
             <span className="font-display font-medium">Empty Jar</span>
           </Link>
           
@@ -245,41 +233,48 @@ export default function AppPage() {
       )}
 
       {/* Main content */}
-      <main className={`min-h-screen flex flex-col lg:flex-row ${
+      <main className={`min-h-screen flex flex-col lg:flex-row pb-20 lg:pb-0 ${
         showReminder && !showSyncPrompt ? 'pt-[7.5rem]' : 'pt-16'
       } ${isGuest ? 'pt-[6.5rem]' : ''} ${isGuest && showReminder ? 'pt-[10rem]' : ''}`}>
-        {/* Left: Jar Scene */}
+        {/* Left: Jar Visual */}
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          className="lg:flex-1 h-[50vh] lg:h-auto lg:min-h-[calc(100vh-4rem)] relative"
+          transition={{ delay: 0.2, duration: 0.6 }}
+          className="lg:flex-1 h-[40vh] lg:h-auto lg:min-h-[calc(100vh-4rem)] relative flex items-center justify-center"
+          style={{
+            background: 'radial-gradient(ellipse at center, hsl(35 90% 95% / 0.5) 0%, transparent 70%)',
+          }}
         >
-          <Suspense fallback={<JarLoader />}>
-            <JarScene 
-              notes={notes} 
-              newNoteId={newNoteId}
-              onNoteClick={handleNoteClick}
-              className="w-full h-full"
-              size="panel"
+          {/* Simple jar image instead of 3D */}
+          <motion.div 
+            className="relative"
+            animate={{ y: [0, -8, 0] }}
+            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+          >
+            <img 
+              src={jarLogoImage} 
+              alt="Gratitude jar" 
+              className="w-auto h-[200px] sm:h-[280px] lg:h-[360px] object-contain drop-shadow-xl"
             />
-          </Suspense>
-
-          {/* Notes count overlay */}
-          <div className="absolute bottom-6 left-6 glass-panel px-4 py-2 flex items-center gap-3">
-            <span className="text-sm font-medium">
-              {notes.length} {notes.length === 1 ? 'note' : 'notes'}
-            </span>
-            {canReplay && (
-              <button 
-                onClick={handleStartReplay}
-                className="btn-ghost p-1.5 text-primary"
-                title="Replay your year"
-              >
-                <Play className="w-4 h-4" />
-              </button>
+            {/* Notes count badge */}
+            {notes.length > 0 && (
+              <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 glass-panel px-4 py-2 flex items-center gap-3">
+                <span className="text-sm font-medium whitespace-nowrap">
+                  {notes.length} {notes.length === 1 ? 'note' : 'notes'}
+                </span>
+                {canReplay && (
+                  <button 
+                    onClick={handleStartReplay}
+                    className="btn-ghost p-1.5 text-primary"
+                    title="Replay your year"
+                  >
+                    <Play className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
             )}
-          </div>
+          </motion.div>
         </motion.div>
 
         {/* Right: Weekly Panel */}

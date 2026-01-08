@@ -7,13 +7,11 @@
   A premium gratitude experience with warmth and craft
 */
 
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400&display=swap');
-
 @layer base {
   :root {
-    /* Typography */
-    --font-display: 'Fraunces', Georgia, serif;
-    --font-body: 'DM Sans', system-ui, sans-serif;
+    /* Typography - Premium fonts */
+    --font-display: 'Playfair Display', Georgia, serif;
+    --font-body: 'Outfit', system-ui, sans-serif;
 
     /* Core Palette - Warm Cream & Espresso */
     --background: 40 30% 97%;
@@ -156,12 +154,19 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-family: var(--font-body);
+    font-weight: 400;
+    letter-spacing: -0.01em;
   }
 
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
     font-weight: 500;
     letter-spacing: -0.02em;
+  }
+
+  /* Smooth transitions globally */
+  *, *::before, *::after {
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   /* Reduced motion */
