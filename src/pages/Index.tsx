@@ -2,20 +2,8 @@ import { Suspense, lazy, useRef } from 'react';
 import { motion, useScroll, useTransform, useInView } from 'framer-motion';
 import { ArrowRight, Sparkles, Heart, Calendar, Play } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { Note } from '@/lib/types';
-import { getWeekKey } from '@/lib/storage';
 
-const JarScene = lazy(() => import('@/components/jar/JarScene'));
-
-const currentYear = new Date().getFullYear();
-const SAMPLE_NOTES: Note[] = [
-  { id: '1', weekKey: `${currentYear}-03`, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), body: 'test', mood: 5, momentType: 'small-win', tags: [] },
-  { id: '2', weekKey: `${currentYear}-08`, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), body: 'test', mood: 4, momentType: 'people', tags: [] },
-  { id: '3', weekKey: `${currentYear}-12`, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), body: 'test', mood: 5, momentType: 'big-win', tags: [] },
-  { id: '4', weekKey: `${currentYear}-15`, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), body: 'test', mood: 4, momentType: 'health', tags: [] },
-  { id: '5', weekKey: `${currentYear}-20`, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(), body: 'test', mood: 5, momentType: 'learning', tags: [] },
-];
-
+const PremiumJarScene = lazy(() => import('@/components/jar/PremiumJarScene'));
 function JarLoader() {
   return (
     <div className="w-full h-full flex items-center justify-center">
@@ -81,7 +69,7 @@ export default function Index() {
             </motion.div>
             <motion.div style={{ y: jarY, scale: jarScale }} className="order-1 lg:order-2 h-[400px] sm:h-[500px] lg:h-[600px]">
               <Suspense fallback={<JarLoader />}>
-                <JarScene notes={SAMPLE_NOTES} className="w-full h-full" size="hero" />
+                <PremiumJarScene className="w-full h-full" />
               </Suspense>
             </motion.div>
           </div>
