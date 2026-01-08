@@ -45,33 +45,38 @@ export default function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
             aria-hidden="true"
           />
 
-          {/* Modal container - centered */}
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 16 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 16 }}
-              transition={{ 
-                type: 'spring', 
-                damping: 28, 
-                stiffness: 350,
-                mass: 0.8
-              }}
-              className="w-full max-w-md pointer-events-auto"
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="feedback-title"
-            >
-              {/* Card */}
-              <div className="relative bg-card rounded-3xl border border-border shadow-xl overflow-hidden">
-                {/* Close button */}
-                <button
-                  onClick={onClose}
-                  className="absolute top-4 right-4 w-8 h-8 rounded-full bg-muted/60 hover:bg-muted flex items-center justify-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
-                  aria-label="Close modal"
-                >
-                  <X className="w-4 h-4 text-muted-foreground" />
-                </button>
+          {/* Modal container - properly centered */}
+          <div 
+            className="fixed inset-0 z-50 overflow-y-auto"
+            onClick={(e) => e.target === e.currentTarget && onClose()}
+          >
+            <div className="min-h-full flex items-center justify-center p-4">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 24 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 24 }}
+                transition={{ 
+                  type: 'spring', 
+                  damping: 28, 
+                  stiffness: 350,
+                  mass: 0.8
+                }}
+                className="w-full max-w-md my-8"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="feedback-title"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Card */}
+                <div className="relative bg-card rounded-3xl border border-border shadow-xl overflow-hidden">
+                  {/* Close button */}
+                  <button
+                    onClick={onClose}
+                    className="absolute top-4 right-4 w-8 h-8 rounded-full bg-muted/60 hover:bg-muted flex items-center justify-center transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                    aria-label="Close modal"
+                  >
+                    <X className="w-4 h-4 text-muted-foreground" />
+                  </button>
 
                 {/* Content */}
                 <div className="px-8 py-10 text-center">
@@ -107,8 +112,9 @@ export default function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
                     Opens in a new tab
                   </p>
                 </div>
-              </div>
-            </motion.div>
+                </div>
+              </motion.div>
+            </div>
           </div>
         </>
       )}
