@@ -96,7 +96,7 @@ export default function NoteComposer({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed inset-4 md:inset-auto md:left-1/2 md:top-[40%] md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-2xl z-50 flex flex-col"
+            className="fixed inset-4 md:inset-auto md:left-1/2 md:top-[10%] md:-translate-x-1/2 md:w-full md:max-w-2xl z-50 flex flex-col"
           >
             <div className="glass-panel flex flex-col max-h-[90vh] md:max-h-none">
               {/* Header - Compact */}
