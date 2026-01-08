@@ -36,7 +36,6 @@ export default function NoteComposer({
   const weekEnd = getWeekEnd(weekStart);
   const dateRange = formatDateRange(weekStart, weekEnd);
 
-  // Populate form when editing
   useEffect(() => {
     if (existingNote) {
       setTitle(existingNote.title || '');
@@ -45,7 +44,6 @@ export default function NoteComposer({
       setMomentType(existingNote.momentType);
       setSelectedTags(existingNote.tags);
     } else {
-      // Reset form for new notes
       setTitle('');
       setBody('');
       setMood(4);
@@ -98,95 +96,90 @@ export default function NoteComposer({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed inset-4 md:inset-auto md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-lg z-50 flex flex-col"
+            className="fixed inset-4 md:inset-auto md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-2xl z-50 flex flex-col"
           >
-            <div className="glass-panel flex-1 overflow-hidden flex flex-col max-h-[85vh]">
-              <div className="flex-1 overflow-y-auto p-6 md:p-8">
-                {/* Header */}
-                <div className="flex items-start justify-between mb-6">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-overline">Week {weekNumber}</span>
-                      {isBackfill && (
-                        <span className="text-xs px-2 py-0.5 rounded bg-secondary text-secondary-foreground">
-                          Backfill
-                        </span>
-                      )}
-                    </div>
-                    <h2 className="text-heading mt-1">
+            <div className="glass-panel flex flex-col max-h-[90vh] md:max-h-none">
+              {/* Header - Compact */}
+              <div className="flex items-start justify-between p-4 md:p-5 border-b border-border">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-overline">Week {weekNumber}</span>
+                    {isBackfill && (
+                      <span className="text-xs px-2 py-0.5 rounded bg-secondary text-secondary-foreground">
+                        Backfill
+                      </span>
+                    )}
+                    <span className="text-caption">•</span>
+                    <span className="text-caption">{dateRange}</span>
+                  </div>
+                  <div className="flex items-center gap-2 mt-1">
+                    <h2 className="text-heading">
                       {existingNote ? 'Edit note' : 'Add a note'}
                     </h2>
-                    <p className="text-caption mt-1">{dateRange}</p>
-                  </div>
-                  <button
-                    onClick={onClose}
-                    className="btn-ghost p-2 -mr-2 -mt-2"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
-
-                {/* Prompt */}
-                <div className="mb-6 p-4 rounded-xl bg-secondary/50 border border-secondary">
-                  <div className="flex items-center gap-2 text-secondary-foreground">
-                    <Sparkles className="w-4 h-4" />
-                    <span className="text-sm font-medium">{prompt}</span>
+                    <span className="text-caption flex items-center gap-1">
+                      <Sparkles className="w-3 h-3" />
+                      {prompt}
+                    </span>
                   </div>
                 </div>
+                <button
+                  onClick={onClose}
+                  className="btn-ghost p-2 -mr-2 -mt-2"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
 
-                {/* Form */}
-                <div className="space-y-5">
-                  {/* Title (optional) */}
-                  <div>
+              {/* Form - 2 Column Grid on Desktop */}
+              <div className="p-4 md:p-5 overflow-y-auto md:overflow-visible flex-1">
+                <div className="md:grid md:grid-cols-2 md:gap-5 space-y-4 md:space-y-0">
+                  {/* Left Column - Text Inputs */}
+                  <div className="space-y-3">
                     <input
                       type="text"
                       placeholder="Give it a title (optional)"
                       value={title}
                       onChange={(e) => setTitle(e.target.value)}
-                      className="input-premium text-lg font-display"
+                      className="input-premium text-base font-display"
                     />
-                  </div>
-
-                  {/* Body */}
-                  <div>
                     <textarea
                       placeholder="Write your note..."
                       value={body}
                       onChange={(e) => setBody(e.target.value)}
-                      rows={4}
+                      rows={5}
                       className="input-premium resize-none"
                     />
                   </div>
 
-                  {/* Mood */}
-                  <MoodSelector value={mood} onChange={setMood} />
-
-                  {/* Moment Type */}
-                  <MomentTypeSelector value={momentType} onChange={setMomentType} />
-
-                  {/* Tags */}
-                  <div className="space-y-2">
-                    <label className="text-caption block">Add tags</label>
-                    <div className="flex flex-wrap gap-2">
-                      {SUGGESTED_TAGS.map((tag) => (
-                        <motion.button
-                          key={tag}
-                          type="button"
-                          onClick={() => toggleTag(tag)}
-                          className={`tag-chip ${selectedTags.includes(tag) ? 'selected' : ''}`}
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                        >
-                          #{tag}
-                        </motion.button>
-                      ))}
+                  {/* Right Column - Selectors */}
+                  <div className="space-y-4">
+                    <MoodSelector value={mood} onChange={setMood} />
+                    <MomentTypeSelector value={momentType} onChange={setMomentType} />
+                    
+                    {/* Tags - Compact */}
+                    <div className="space-y-1.5">
+                      <label className="text-caption block">Add tags</label>
+                      <div className="flex flex-wrap gap-1.5">
+                        {SUGGESTED_TAGS.map((tag) => (
+                          <motion.button
+                            key={tag}
+                            type="button"
+                            onClick={() => toggleTag(tag)}
+                            className={`tag-chip text-xs ${selectedTags.includes(tag) ? 'selected' : ''}`}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                          >
+                            #{tag}
+                          </motion.button>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Actions - fixed at bottom */}
-              <div className="shrink-0 flex gap-3 p-6 md:p-8 pt-4 border-t border-border bg-card/80">
+              {/* Actions - Fixed at bottom */}
+              <div className="flex gap-3 p-4 md:p-5 border-t border-border bg-card/80">
                 <button onClick={onClose} className="btn-secondary flex-1">
                   Cancel
                 </button>
