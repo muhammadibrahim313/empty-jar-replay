@@ -47,10 +47,9 @@ export default function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
 
           {/* Modal container - properly centered */}
           <div 
-            className="fixed inset-0 z-50 overflow-y-auto"
-            onClick={(e) => e.target === e.currentTarget && onClose()}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            onClick={onClose}
           >
-            <div className="min-h-full flex items-center justify-center p-4">
               <motion.div
                 initial={{ opacity: 0, scale: 0.95, y: 24 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -61,7 +60,7 @@ export default function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
                   stiffness: 350,
                   mass: 0.8
                 }}
-                className="w-full max-w-md my-8"
+                className="w-full max-w-md"
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="feedback-title"
@@ -112,9 +111,8 @@ export default function FeedbackModal({ isOpen, onClose }: FeedbackModalProps) {
                     Opens in a new tab
                   </p>
                 </div>
-                </div>
-              </motion.div>
-            </div>
+              </div>
+            </motion.div>
           </div>
         </>
       )}
