@@ -3,6 +3,7 @@ import { motion, useScroll, useTransform, useInView } from 'framer-motion';
 import { ArrowRight, Sparkles, Heart, Calendar, Play } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import jarHeroImage from '@/assets/jar-hero.png';
+import jarLogoImage from '@/assets/jar-hero.png';
 
 function FeatureCard({ icon: Icon, title, description, delay }: { icon: typeof Sparkles; title: string; description: string; delay: number }) {
   const ref = useRef(null);
@@ -30,13 +31,16 @@ export default function Index() {
     <div className="min-h-screen bg-background overflow-x-hidden">
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md">
         <nav className="container-wide flex items-center justify-between h-16">
-          <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-              <Sparkles className="w-4 h-4 text-primary-foreground" />
-            </div>
-            <span className="font-display text-xl font-medium">Empty Jar</span>
+          <motion.div 
+            initial={{ opacity: 0, x: -20 }} 
+            animate={{ opacity: 1, x: 0 }} 
+            transition={{ type: "spring" as const, stiffness: 100, damping: 30 }}
+            className="flex items-center gap-2.5"
+          >
+            <img src={jarLogoImage} alt="Empty Jar" className="w-8 h-8 object-contain rounded-lg" />
+            <span className="font-display text-xl font-medium tracking-tight">Empty Jar</span>
           </motion.div>
-          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}>
+          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ type: "spring" as const, stiffness: 100, damping: 30 }}>
             <Link to="/app" className="btn-primary text-sm py-2.5">Open app<ArrowRight className="w-4 h-4" /></Link>
           </motion.div>
         </nav>
@@ -47,22 +51,51 @@ export default function Index() {
         <div className="container-wide relative z-10">
           <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-center min-h-[calc(100vh-4rem)]">
             <motion.div style={{ opacity: textOpacity }} className="text-center lg:text-left order-2 lg:order-1">
-              <motion.span initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="text-overline text-primary inline-block mb-4">A gratitude practice for the modern soul</motion.span>
-              <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="text-display mb-6">One note a week.<br /><span className="gradient-text-accent">A year you can replay.</span></motion.h1>
-              <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="text-body-lg text-muted-foreground max-w-lg mx-auto lg:mx-0 mb-8">Collect your weekly moments of gratitude in a beautiful jar. At year's end, rediscover fifty-two reasons to smile.</motion.p>
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+              <motion.span 
+                initial={{ opacity: 0, y: 20 }} 
+                animate={{ opacity: 1, y: 0 }} 
+                transition={{ delay: 0.2, duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }} 
+                className="text-overline text-primary inline-block mb-4"
+              >
+                A gratitude practice for the modern soul
+              </motion.span>
+              <motion.h1 
+                initial={{ opacity: 0, y: 20 }} 
+                animate={{ opacity: 1, y: 0 }} 
+                transition={{ delay: 0.3, duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }} 
+                className="text-display mb-6"
+              >
+                One note a week.<br /><span className="gradient-text-accent">A year you can replay.</span>
+              </motion.h1>
+              <motion.p 
+                initial={{ opacity: 0, y: 20 }} 
+                animate={{ opacity: 1, y: 0 }} 
+                transition={{ delay: 0.4, duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }} 
+                className="text-body-lg text-muted-foreground max-w-lg mx-auto lg:mx-0 mb-8"
+              >
+                Collect your weekly moments of gratitude in a beautiful jar. At year's end, rediscover fifty-two reasons to smile.
+              </motion.p>
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }} 
+                animate={{ opacity: 1, y: 0 }} 
+                transition={{ delay: 0.5, duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }} 
+                className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
+              >
                 <Link to="/app" className="btn-primary text-lg px-8 py-4">Add this week's note<ArrowRight className="w-5 h-5" /></Link>
                 <Link to="/app" className="btn-secondary text-lg px-8 py-4"><Play className="w-5 h-5" />See a sample year</Link>
               </motion.div>
             </motion.div>
-            <motion.div style={{ y: jarY, scale: jarScale }} className="order-1 lg:order-2 flex items-center justify-center h-[400px] sm:h-[500px] lg:h-[600px]">
+            <motion.div 
+              style={{ y: jarY, scale: jarScale }} 
+              className="order-1 lg:order-2 flex items-center justify-center h-[400px] sm:h-[500px] lg:h-[600px]"
+            >
               <motion.img 
                 src={jarHeroImage} 
                 alt="Glass jar filled with paper notes" 
-                className="w-auto h-[350px] sm:h-[450px] lg:h-[550px] object-contain rounded-3xl shadow-2xl"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, ease: 'easeOut' }}
+                className="w-auto h-[350px] sm:h-[450px] lg:h-[550px] object-contain rounded-3xl"
+                initial={{ opacity: 0, y: 30, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ duration: 1, ease: [0.25, 0.46, 0.45, 0.94] }}
               />
             </motion.div>
           </div>
@@ -98,7 +131,10 @@ export default function Index() {
 
       <footer className="py-8 border-t border-border">
         <div className="container-wide flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2 text-muted-foreground"><Sparkles className="w-4 h-4" /><span className="text-sm">Empty Jar</span></div>
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <img src={jarLogoImage} alt="Empty Jar" className="w-5 h-5 object-contain rounded" />
+            <span className="text-sm font-medium">Empty Jar</span>
+          </div>
           <p className="text-caption">Made with care. Collect what matters.</p>
         </div>
       </footer>
