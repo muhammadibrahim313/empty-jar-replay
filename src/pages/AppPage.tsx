@@ -1,8 +1,9 @@
 import { Suspense, lazy, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Settings, Eye, EyeOff, Search, X, Download, Play } from 'lucide-react';
+import { ArrowLeft, Settings, Eye, EyeOff, Search, Play, LogIn, LogOut, Wifi, WifiOff } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useNotes } from '@/hooks/useNotes';
+import { useAuth } from '@/contexts/AuthContext';
 import WeeklyPanel from '@/components/WeeklyPanel';
 import Timeline from '@/components/Timeline';
 import NoteComposer from '@/components/NoteComposer';
@@ -10,10 +11,10 @@ import ReminderBanner from '@/components/ReminderBanner';
 import SettingsModal from '@/components/SettingsModal';
 import SearchFilter from '@/components/SearchFilter';
 import NoteViewer from '@/components/NoteViewer';
-import { Note, WeekInfo } from '@/lib/types';
-import { parseWeekKey } from '@/lib/storage';
+import AuthModal from '@/components/AuthModal';
+import SyncPrompt from '@/components/SyncPrompt';
+import { Note } from '@/lib/types';
 
-// Lazy load the 3D scene for performance
 const JarScene = lazy(() => import('@/components/jar/JarScene'));
 
 function JarLoader() {
@@ -29,6 +30,7 @@ function JarLoader() {
 
 export default function AppPage() {
   const navigate = useNavigate();
+  const { user, isGuest, isLoading: authLoading, signOut } = useAuth();
   const { 
     notes, 
     weeks, 
@@ -39,6 +41,10 @@ export default function AppPage() {
     showReminder,
     canReplay,
     notesCount,
+    isLoading,
+    isOnline,
+    showSyncPrompt,
+    guestNotesToSync,
     addNote, 
     updateNote,
     getNoteForWeek,
@@ -46,6 +52,8 @@ export default function AppPage() {
     updateSettings,
     dismissReminder,
     togglePrivacy,
+    syncGuestNotes,
+    dismissSyncPrompt,
   } = useNotes();
 
   const [selectedWeekKey, setSelectedWeekKey] = useState(currentWeekKey);
@@ -54,6 +62,7 @@ export default function AppPage() {
   const [newNoteId, setNewNoteId] = useState<string | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [viewingNote, setViewingNote] = useState<Note | null>(null);
 
   const selectedWeek = useMemo(() => {
@@ -66,8 +75,8 @@ export default function AppPage() {
 
   const isFirstTime = notesCount === 0;
 
-  const handleAddNote = (noteData: Omit<Note, 'id' | 'createdAt' | 'updatedAt' | 'isBackfill'>) => {
-    const newId = addNote(noteData);
+  const handleAddNote = async (noteData: Omit<Note, 'id' | 'createdAt' | 'updatedAt' | 'isBackfill'>) => {
+    const newId = await addNote(noteData);
     if (newId) {
       setNewNoteId(newId);
       setTimeout(() => setNewNoteId(null), 2000);
@@ -76,9 +85,9 @@ export default function AppPage() {
     setIsEditing(false);
   };
 
-  const handleEditNote = (noteData: Omit<Note, 'id' | 'createdAt' | 'updatedAt' | 'isBackfill'>) => {
+  const handleEditNote = async (noteData: Omit<Note, 'id' | 'createdAt' | 'updatedAt' | 'isBackfill'>) => {
     if (noteForSelectedWeek) {
-      updateNote(noteForSelectedWeek.id, {
+      await updateNote(noteForSelectedWeek.id, {
         title: noteData.title,
         body: noteData.body,
         mood: noteData.mood,
@@ -123,17 +132,40 @@ export default function AppPage() {
     }
   };
 
+  const handleSignOut = async () => {
+    await signOut();
+  };
+
+  if (isLoading || authLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 mx-auto mb-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="text-caption">Loading your jar...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
+      {/* Sync Prompt for guest notes */}
+      <SyncPrompt
+        isOpen={showSyncPrompt}
+        guestNotes={guestNotesToSync}
+        onSync={syncGuestNotes}
+        onDismiss={dismissSyncPrompt}
+      />
+
       {/* Reminder Banner */}
       <AnimatePresence>
-        {showReminder && (
+        {showReminder && !showSyncPrompt && (
           <ReminderBanner onDismiss={dismissReminder} onAddNote={() => handleOpenComposer(false)} />
         )}
       </AnimatePresence>
 
       {/* Header */}
-      <header className={`fixed left-0 right-0 z-40 bg-background/80 backdrop-blur-md border-b border-border ${showReminder ? 'top-14' : 'top-0'}`}>
+      <header className={`fixed left-0 right-0 z-40 bg-background/80 backdrop-blur-md border-b border-border ${showReminder && !showSyncPrompt ? 'top-14' : 'top-0'}`}>
         <div className="container-wide flex items-center justify-between h-16">
           <Link to="/" className="btn-ghost -ml-2">
             <ArrowLeft className="w-4 h-4" />
@@ -141,6 +173,14 @@ export default function AppPage() {
           </Link>
           
           <div className="flex items-center gap-2">
+            {/* Online/Offline indicator */}
+            {!isOnline && (
+              <span className="flex items-center gap-1.5 text-xs text-muted-foreground px-2 py-1 rounded-md bg-muted">
+                <WifiOff className="w-3 h-3" />
+                Offline
+              </span>
+            )}
+            
             <button 
               onClick={() => setIsSearchOpen(true)}
               className="btn-ghost p-2"
@@ -162,13 +202,52 @@ export default function AppPage() {
             >
               <Settings className="w-4 h-4" />
             </button>
+            
+            {/* Auth button */}
+            {user ? (
+              <button 
+                onClick={handleSignOut}
+                className="btn-ghost p-2"
+                title="Sign out"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            ) : (
+              <button 
+                onClick={() => setIsAuthOpen(true)}
+                className="btn-ghost p-2"
+                title="Sign in to sync"
+              >
+                <LogIn className="w-4 h-4" />
+              </button>
+            )}
+            
             <span className="text-caption ml-2">{currentYear}</span>
           </div>
         </div>
       </header>
 
+      {/* Guest mode banner */}
+      {isGuest && (
+        <div className={`fixed left-0 right-0 z-30 bg-secondary border-b border-border ${showReminder && !showSyncPrompt ? 'top-[7rem]' : 'top-16'}`}>
+          <div className="container-wide flex items-center justify-between h-10 text-sm">
+            <span className="text-secondary-foreground">
+              Guest mode • Notes saved locally
+            </span>
+            <button 
+              onClick={() => setIsAuthOpen(true)}
+              className="text-primary font-medium hover:underline"
+            >
+              Sign in to sync
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Main content */}
-      <main className={`min-h-screen flex flex-col lg:flex-row ${showReminder ? 'pt-[7.5rem]' : 'pt-16'}`}>
+      <main className={`min-h-screen flex flex-col lg:flex-row ${
+        showReminder && !showSyncPrompt ? 'pt-[7.5rem]' : 'pt-16'
+      } ${isGuest ? 'pt-[6.5rem]' : ''} ${isGuest && showReminder ? 'pt-[10rem]' : ''}`}>
         {/* Left: Jar Scene */}
         <motion.div 
           initial={{ opacity: 0 }}
@@ -231,7 +310,7 @@ export default function AppPage() {
       </main>
 
       {/* Timeline */}
-      <div className={`fixed bottom-0 left-0 right-0 lg:right-[420px] xl:right-[480px] z-30 bg-background/90 backdrop-blur-md border-t border-border`}>
+      <div className="fixed bottom-0 left-0 right-0 lg:right-[420px] xl:right-[480px] z-30 bg-background/90 backdrop-blur-md border-t border-border">
         <Timeline
           weeks={weeks}
           currentWeekKey={currentWeekKey}
@@ -277,6 +356,12 @@ export default function AppPage() {
         isOpen={!!viewingNote}
         onClose={() => setViewingNote(null)}
         hideContent={settings.hideNotes}
+      />
+
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={isAuthOpen}
+        onClose={() => setIsAuthOpen(false)}
       />
     </div>
   );

@@ -1,7 +1,17 @@
-import { Note, AppSettings, WeekInfo, DEFAULT_SETTINGS } from './types';
+import { Note, AppSettings, DEFAULT_SETTINGS } from './types';
 
 const NOTES_STORAGE_KEY = 'empty-jar-notes';
 const SETTINGS_STORAGE_KEY = 'empty-jar-settings';
+const PENDING_SYNC_KEY = 'empty-jar-pending-sync';
+const GUEST_SYNCED_KEY = 'empty-jar-guest-synced';
+
+export interface PendingChange {
+  id: string;
+  type: 'create' | 'update' | 'delete';
+  table: 'notes' | 'settings';
+  data: any;
+  timestamp: number;
+}
 
 // Get ISO week number and year
 export function getWeekKey(date: Date): string {
@@ -17,6 +27,11 @@ export function getWeekKey(date: Date): string {
 export function parseWeekKey(weekKey: string): { year: number; weekNumber: number } {
   const [year, week] = weekKey.split('-').map(Number);
   return { year, weekNumber: week };
+}
+
+export function validateWeekKey(weekKey: string): boolean {
+  const regex = /^\d{4}-(0[1-9]|[1-4][0-9]|5[0-3])$/;
+  return regex.test(weekKey);
 }
 
 // Get start of week (Monday)
@@ -44,8 +59,8 @@ export function formatDateRange(start: Date, end: Date): string {
   return `${start.toLocaleDateString('en-US', opts)} – ${end.toLocaleDateString('en-US', opts)}`;
 }
 
-// Storage functions
-export function loadNotes(): Note[] {
+// Local Storage functions for guest mode
+export function loadLocalNotes(): Note[] {
   try {
     const stored = localStorage.getItem(NOTES_STORAGE_KEY);
     if (stored) {
@@ -57,7 +72,7 @@ export function loadNotes(): Note[] {
   return [];
 }
 
-export function saveNotes(notes: Note[]): void {
+export function saveLocalNotes(notes: Note[]): void {
   try {
     localStorage.setItem(NOTES_STORAGE_KEY, JSON.stringify(notes));
   } catch (e) {
@@ -65,7 +80,7 @@ export function saveNotes(notes: Note[]): void {
   }
 }
 
-export function loadSettings(): AppSettings {
+export function loadLocalSettings(): AppSettings {
   try {
     const stored = localStorage.getItem(SETTINGS_STORAGE_KEY);
     if (stored) {
@@ -77,7 +92,7 @@ export function loadSettings(): AppSettings {
   return DEFAULT_SETTINGS;
 }
 
-export function saveSettings(settings: AppSettings): void {
+export function saveLocalSettings(settings: AppSettings): void {
   try {
     localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
   } catch (e) {
@@ -85,34 +100,88 @@ export function saveSettings(settings: AppSettings): void {
   }
 }
 
-// Check if it's reminder time
-export function shouldShowReminder(settings: AppSettings): boolean {
-  const now = new Date();
-  const currentDay = now.getDay();
-  const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-  
-  // Check if it's the reminder day and past the reminder time
-  if (currentDay === settings.reminderDay && currentTime >= settings.reminderTime) {
-    // Check if there's already a note for this week
-    const currentWeekKey = getWeekKey(now);
-    const notes = loadNotes();
-    const hasNoteThisWeek = notes.some(n => n.weekKey === currentWeekKey);
-    return !hasNoteThisWeek;
+// Pending sync queue for offline support
+export function loadPendingChanges(): PendingChange[] {
+  try {
+    const stored = localStorage.getItem(PENDING_SYNC_KEY);
+    if (stored) {
+      return JSON.parse(stored);
+    }
+  } catch (e) {
+    console.error('Failed to load pending changes:', e);
   }
-  
-  return false;
+  return [];
+}
+
+export function savePendingChanges(changes: PendingChange[]): void {
+  try {
+    localStorage.setItem(PENDING_SYNC_KEY, JSON.stringify(changes));
+  } catch (e) {
+    console.error('Failed to save pending changes:', e);
+  }
+}
+
+export function addPendingChange(change: Omit<PendingChange, 'id' | 'timestamp'>): void {
+  const changes = loadPendingChanges();
+  changes.push({
+    ...change,
+    id: `pending-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+    timestamp: Date.now(),
+  });
+  savePendingChanges(changes);
+}
+
+export function clearPendingChanges(): void {
+  localStorage.removeItem(PENDING_SYNC_KEY);
+}
+
+// Guest sync tracking
+export function hasGuestBeenSynced(): boolean {
+  return localStorage.getItem(GUEST_SYNCED_KEY) === 'true';
+}
+
+export function markGuestAsSynced(): void {
+  localStorage.setItem(GUEST_SYNCED_KEY, 'true');
+}
+
+export function clearGuestData(): void {
+  localStorage.removeItem(NOTES_STORAGE_KEY);
+  localStorage.removeItem(SETTINGS_STORAGE_KEY);
+  localStorage.removeItem(PENDING_SYNC_KEY);
+  // Don't clear GUEST_SYNCED_KEY - we want to remember they synced
+}
+
+// Check if there are guest notes to sync
+export function getGuestNotesToSync(): Note[] {
+  if (hasGuestBeenSynced()) {
+    return [];
+  }
+  return loadLocalNotes();
 }
 
 // Generate week info for a year
+export interface WeekInfo {
+  weekKey: string;
+  weekNumber: number;
+  year: number;
+  startDate: Date;
+  endDate: Date;
+  hasNote: boolean;
+  note?: Note;
+  isCurrent: boolean;
+  isPast: boolean;
+  isFuture: boolean;
+}
+
 export function generateWeeksForYear(year: number, notes: Note[]): WeekInfo[] {
   const currentWeekKey = getWeekKey(new Date());
   const weeks: WeekInfo[] = [];
   
-  // Get number of weeks in the year
+  // Get number of weeks in the year (52 or 53)
   const lastDay = new Date(year, 11, 31);
   const lastWeekKey = getWeekKey(lastDay);
   const { weekNumber: lastWeekNum } = parseWeekKey(lastWeekKey);
-  const numWeeks = lastWeekNum === 1 ? 52 : lastWeekNum;
+  const numWeeks = lastWeekNum === 1 ? 52 : Math.min(lastWeekNum, 53);
   
   for (let weekNum = 1; weekNum <= numWeeks; weekNum++) {
     const weekKey = `${year}-${weekNum.toString().padStart(2, '0')}`;
@@ -152,7 +221,6 @@ export interface NoteFilters {
 
 export function filterNotes(notes: Note[], filters: NoteFilters): Note[] {
   return notes.filter(note => {
-    // Search query
     if (filters.searchQuery) {
       const query = filters.searchQuery.toLowerCase();
       const matchesTitle = note.title?.toLowerCase().includes(query);
@@ -161,17 +229,14 @@ export function filterNotes(notes: Note[], filters: NoteFilters): Note[] {
       if (!matchesTitle && !matchesBody && !matchesTags) return false;
     }
     
-    // Mood filter
     if (filters.moods && filters.moods.length > 0) {
       if (!filters.moods.includes(note.mood)) return false;
     }
     
-    // Moment type filter
     if (filters.momentTypes && filters.momentTypes.length > 0) {
       if (!filters.momentTypes.includes(note.momentType)) return false;
     }
     
-    // Tags filter
     if (filters.tags && filters.tags.length > 0) {
       if (!filters.tags.some(t => note.tags.includes(t))) return false;
     }
@@ -180,7 +245,6 @@ export function filterNotes(notes: Note[], filters: NoteFilters): Note[] {
   });
 }
 
-// Get all unique tags from notes
 export function getAllTags(notes: Note[]): string[] {
   const tagSet = new Set<string>();
   notes.forEach(note => note.tags.forEach(tag => tagSet.add(tag)));

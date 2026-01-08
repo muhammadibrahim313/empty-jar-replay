@@ -14,7 +14,81 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      notes: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          is_backfilled: boolean | null
+          moment_type: string
+          mood: number
+          tags: string[] | null
+          title: string | null
+          updated_at: string
+          user_id: string
+          week_key: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          is_backfilled?: boolean | null
+          moment_type: string
+          mood: number
+          tags?: string[] | null
+          title?: string | null
+          updated_at?: string
+          user_id: string
+          week_key: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          is_backfilled?: boolean | null
+          moment_type?: string
+          mood?: number
+          tags?: string[] | null
+          title?: string | null
+          updated_at?: string
+          user_id?: string
+          week_key?: string
+        }
+        Relationships: []
+      }
+      settings: {
+        Row: {
+          created_at: string
+          hide_notes: boolean | null
+          reduced_motion: boolean | null
+          reminder_day: number | null
+          reminder_time: string | null
+          theme_mode: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          hide_notes?: boolean | null
+          reduced_motion?: boolean | null
+          reminder_day?: number | null
+          reminder_time?: string | null
+          theme_mode?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          hide_notes?: boolean | null
+          reduced_motion?: boolean | null
+          reminder_day?: number | null
+          reminder_time?: string | null
+          theme_mode?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
