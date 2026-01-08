@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Settings, Eye, EyeOff, Search, Play, LogIn, LogOut, WifiOff } from 'lucide-react';
+import { Settings, Eye, EyeOff, Search, Play, LogIn, WifiOff } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useNotes } from '@/hooks/useNotes';
 import { useAuth } from '@/contexts/AuthContext';
@@ -11,14 +11,15 @@ import ReminderBanner from '@/components/ReminderBanner';
 import SettingsModal from '@/components/SettingsModal';
 import SearchFilter from '@/components/SearchFilter';
 import NoteViewer from '@/components/NoteViewer';
-import AuthModal from '@/components/AuthModal';
 import SyncPrompt from '@/components/SyncPrompt';
+import GuestSyncCallout from '@/components/GuestSyncCallout';
+import AccountMenu from '@/components/AccountMenu';
 import { Note } from '@/lib/types';
 import jarLogoImage from '@/assets/jar-hero.png';
 
 export default function AppPage() {
   const navigate = useNavigate();
-  const { user, isGuest, isLoading: authLoading, signOut } = useAuth();
+  const { user, isGuest, isLoading: authLoading } = useAuth();
   const { 
     notes, 
     weeks, 
@@ -50,7 +51,6 @@ export default function AppPage() {
   const [newNoteId, setNewNoteId] = useState<string | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [viewingNote, setViewingNote] = useState<Note | null>(null);
 
   const selectedWeek = useMemo(() => {
@@ -120,10 +120,6 @@ export default function AppPage() {
     }
   };
 
-  const handleSignOut = async () => {
-    await signOut();
-  };
-
   if (isLoading || authLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -191,23 +187,17 @@ export default function AppPage() {
               <Settings className="w-4 h-4" />
             </button>
             
-            {/* Auth button */}
+            {/* Auth: Account menu or Sign in link */}
             {user ? (
-              <button 
-                onClick={handleSignOut}
-                className="btn-ghost p-2"
-                title="Sign out"
-              >
-                <LogOut className="w-4 h-4" />
-              </button>
+              <AccountMenu />
             ) : (
-              <button 
-                onClick={() => setIsAuthOpen(true)}
+              <Link 
+                to="/auth/signin"
                 className="btn-ghost p-2"
-                title="Sign in to sync"
+                title="Sign in"
               >
                 <LogIn className="w-4 h-4" />
-              </button>
+              </Link>
             )}
             
             <span className="text-caption ml-2">{currentYear}</span>
@@ -215,27 +205,15 @@ export default function AppPage() {
         </div>
       </header>
 
-      {/* Guest mode banner */}
-      {isGuest && (
-        <div className={`fixed left-0 right-0 z-30 bg-secondary border-b border-border ${showReminder && !showSyncPrompt ? 'top-[7rem]' : 'top-16'}`}>
-          <div className="container-wide flex items-center justify-between h-10 text-sm">
-            <span className="text-secondary-foreground">
-              Guest mode • Notes saved locally
-            </span>
-            <button 
-              onClick={() => setIsAuthOpen(true)}
-              className="text-primary font-medium hover:underline"
-            >
-              Sign in to sync
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Guest Sync Callout - replaces the old banner */}
+      <div className={`fixed left-0 right-0 z-30 ${showReminder && !showSyncPrompt ? 'top-[7rem]' : 'top-16'}`}>
+        <GuestSyncCallout isVisible={isGuest} />
+      </div>
 
       {/* Main content */}
       <main className={`min-h-screen flex flex-col lg:flex-row pb-20 lg:pb-0 ${
         showReminder && !showSyncPrompt ? 'pt-[7.5rem]' : 'pt-16'
-      } ${isGuest ? 'pt-[6.5rem]' : ''} ${isGuest && showReminder ? 'pt-[10rem]' : ''}`}>
+      } ${isGuest ? 'pt-[10rem]' : ''} ${isGuest && showReminder ? 'pt-[13rem]' : ''}`}>
         {/* Left: Jar Visual */}
         <motion.div 
           initial={{ opacity: 0 }}
@@ -351,12 +329,6 @@ export default function AppPage() {
         isOpen={!!viewingNote}
         onClose={() => setViewingNote(null)}
         hideContent={settings.hideNotes}
-      />
-
-      {/* Auth Modal */}
-      <AuthModal
-        isOpen={isAuthOpen}
-        onClose={() => setIsAuthOpen(false)}
       />
     </div>
   );
