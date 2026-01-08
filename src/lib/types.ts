@@ -9,22 +9,36 @@ export type MomentType =
 
 export interface Note {
   id: string;
-  weekNumber: number;
-  year: number;
+  weekKey: string; // Format: YYYY-WW (e.g., "2025-03")
+  createdAt: string; // ISO string
+  updatedAt: string; // ISO string
   title?: string;
   body: string;
   mood: 1 | 2 | 3 | 4 | 5;
   momentType: MomentType;
   tags: string[];
-  createdAt: Date;
+  isBackfill?: boolean; // True if note was added for a past week
+}
+
+export interface AppSettings {
+  reminderDay: 0 | 1 | 2 | 3 | 4 | 5 | 6; // Sunday = 0, Saturday = 6
+  reminderTime: string; // Format: "HH:MM" (e.g., "18:00")
+  themeMode: 'light' | 'dark' | 'system';
+  reducedMotion: boolean;
+  hideNotes: boolean; // Privacy mode
 }
 
 export interface WeekInfo {
+  weekKey: string;
   weekNumber: number;
   year: number;
   startDate: Date;
   endDate: Date;
   hasNote: boolean;
+  note?: Note;
+  isCurrent: boolean;
+  isPast: boolean;
+  isFuture: boolean;
 }
 
 export const MOMENT_TYPES: { value: MomentType; label: string; emoji: string }[] = [
@@ -52,3 +66,21 @@ export const MOOD_LABELS = [
   'Good',
   'Great',
 ];
+
+export const DAY_NAMES = [
+  'Sunday',
+  'Monday',
+  'Tuesday', 
+  'Wednesday',
+  'Thursday',
+  'Friday',
+  'Saturday',
+];
+
+export const DEFAULT_SETTINGS: AppSettings = {
+  reminderDay: 0, // Sunday
+  reminderTime: '18:00',
+  themeMode: 'light',
+  reducedMotion: false,
+  hideNotes: false,
+};

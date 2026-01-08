@@ -240,11 +240,12 @@ function Loader() {
 interface JarSceneProps {
   notes: Note[];
   newNoteId?: string | null;
+  onNoteClick?: (note: Note) => void;
   className?: string;
   size?: 'hero' | 'panel';
 }
 
-export default function JarScene({ notes, newNoteId, className = '', size = 'panel' }: JarSceneProps) {
+export default function JarScene({ notes, newNoteId, onNoteClick, className = '', size = 'panel' }: JarSceneProps) {
   const [isHovered, setIsHovered] = useState(false);
 
   const cameraPosition = size === 'hero' ? [0, 0.5, 4] : [0, 0.3, 3.5];
