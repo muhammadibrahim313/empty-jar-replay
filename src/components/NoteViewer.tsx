@@ -48,14 +48,15 @@ export default function NoteViewer({
             className="fixed inset-0 bg-foreground/20 backdrop-blur-sm z-50"
           />
 
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed inset-4 md:inset-auto md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-lg z-50"
-          >
-            <div className="glass-panel h-full md:h-auto max-h-[90vh] overflow-y-auto p-6 md:p-8">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+              className="w-full max-w-lg pointer-events-auto"
+            >
+              <div className="glass-panel max-h-[90vh] overflow-y-auto p-6 md:p-8 relative">
               {/* Header */}
               <div className="flex items-start justify-between mb-6">
                 <div>
@@ -163,7 +164,8 @@ export default function NoteViewer({
                 Close
               </button>
             </div>
-          </motion.div>
+            </motion.div>
+          </div>
         </>
       )}
     </AnimatePresence>
