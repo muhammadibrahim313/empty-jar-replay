@@ -2,7 +2,7 @@ import { useRef } from 'react';
 import { motion, useScroll, useTransform, useInView } from 'framer-motion';
 import { ArrowRight, Sparkles, Heart, Calendar, Play } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import jarHeroImage from '@/assets/jar-hero.jpg';
+import jarHeroImage from '@/assets/jar-hero.png';
 
 function FeatureCard({ icon: Icon, title, description, delay }: { icon: typeof Sparkles; title: string; description: string; delay: number }) {
   const ref = useRef(null);
@@ -56,19 +56,14 @@ export default function Index() {
               </motion.div>
             </motion.div>
             <motion.div style={{ y: jarY, scale: jarScale }} className="order-1 lg:order-2 flex items-center justify-center h-[400px] sm:h-[500px] lg:h-[600px]">
-              <div className="relative">
-                {/* Soft glow behind jar */}
-                <div className="absolute inset-0 blur-3xl opacity-60 bg-gradient-to-b from-amber-200/40 via-orange-200/30 to-transparent scale-110" />
-                <motion.img 
-                  src={jarHeroImage} 
-                  alt="Mason jar filled with warm fairy lights" 
-                  className="relative z-10 w-auto h-[350px] sm:h-[450px] lg:h-[550px] object-contain drop-shadow-2xl"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.8, ease: 'easeOut' }}
-                  whileHover={{ scale: 1.02 }}
-                />
-              </div>
+              <motion.img 
+                src={jarHeroImage} 
+                alt="Glass jar filled with paper notes" 
+                className="w-auto h-[350px] sm:h-[450px] lg:h-[550px] object-contain rounded-3xl shadow-2xl"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, ease: 'easeOut' }}
+              />
             </motion.div>
           </div>
         </div>
