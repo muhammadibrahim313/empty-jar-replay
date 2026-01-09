@@ -145,6 +145,10 @@ export function useNotes() {
           themeMode: settingsData.theme_mode as AppSettings['themeMode'],
           reducedMotion: settingsData.reduced_motion,
           hideNotes: settingsData.hide_notes,
+          emailRemindersEnabled: settingsData.email_reminders_enabled ?? true,
+          emailReminderDay: (settingsData.email_reminder_day as AppSettings['emailReminderDay']) ?? 'Sunday',
+          emailReminderTime: settingsData.email_reminder_time ?? '19:00',
+          timezone: settingsData.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone ?? 'America/New_York',
         });
       }
     } catch (error) {
@@ -408,6 +412,10 @@ export function useNotes() {
             theme_mode: newSettings.themeMode,
             reduced_motion: newSettings.reducedMotion,
             hide_notes: newSettings.hideNotes,
+            email_reminders_enabled: newSettings.emailRemindersEnabled,
+            email_reminder_day: newSettings.emailReminderDay,
+            email_reminder_time: newSettings.emailReminderTime,
+            timezone: newSettings.timezone,
           });
 
         if (error) throw error;

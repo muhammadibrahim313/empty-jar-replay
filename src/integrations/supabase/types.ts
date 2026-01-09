@@ -80,31 +80,46 @@ export type Database = {
       settings: {
         Row: {
           created_at: string
+          email_reminder_day: string | null
+          email_reminder_time: string | null
+          email_reminders_enabled: boolean | null
           hide_notes: boolean | null
+          last_reminder_sent_week_key: string | null
           reduced_motion: boolean | null
           reminder_day: number | null
           reminder_time: string | null
           theme_mode: string | null
+          timezone: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
           created_at?: string
+          email_reminder_day?: string | null
+          email_reminder_time?: string | null
+          email_reminders_enabled?: boolean | null
           hide_notes?: boolean | null
+          last_reminder_sent_week_key?: string | null
           reduced_motion?: boolean | null
           reminder_day?: number | null
           reminder_time?: string | null
           theme_mode?: string | null
+          timezone?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
           created_at?: string
+          email_reminder_day?: string | null
+          email_reminder_time?: string | null
+          email_reminders_enabled?: boolean | null
           hide_notes?: boolean | null
+          last_reminder_sent_week_key?: string | null
           reduced_motion?: boolean | null
           reminder_day?: number | null
           reminder_time?: string | null
           theme_mode?: string | null
+          timezone?: string | null
           updated_at?: string
           user_id?: string
         }

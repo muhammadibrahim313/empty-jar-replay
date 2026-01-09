@@ -26,6 +26,11 @@ export interface AppSettings {
   themeMode: 'light' | 'dark' | 'system';
   reducedMotion: boolean;
   hideNotes: boolean; // Privacy mode
+  // Email reminder settings
+  emailRemindersEnabled: boolean;
+  emailReminderDay: 'Sunday' | 'Monday';
+  emailReminderTime: string; // Format: "HH:MM"
+  timezone: string; // IANA timezone string
 }
 
 export interface WeekInfo {
@@ -83,4 +88,9 @@ export const DEFAULT_SETTINGS: AppSettings = {
   themeMode: 'light',
   reducedMotion: false,
   hideNotes: false,
+  // Email reminder defaults
+  emailRemindersEnabled: true,
+  emailReminderDay: 'Sunday',
+  emailReminderTime: '19:00',
+  timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/New_York',
 };

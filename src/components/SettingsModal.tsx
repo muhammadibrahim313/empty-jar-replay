@@ -1,7 +1,9 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Download } from 'lucide-react';
+import { X, Download, Mail, Bell } from 'lucide-react';
 import { AppSettings, Note, DAY_NAMES } from '@/lib/types';
 import { exportNotesToPDF } from '@/lib/pdfExport';
+import { useAuth } from '@/contexts/AuthContext';
+import { useMemo } from 'react';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -11,6 +13,24 @@ interface SettingsModalProps {
   notes: Note[];
 }
 
+// Common timezones for dropdown
+const COMMON_TIMEZONES = [
+  'America/New_York',
+  'America/Chicago',
+  'America/Denver',
+  'America/Los_Angeles',
+  'America/Anchorage',
+  'Pacific/Honolulu',
+  'Europe/London',
+  'Europe/Paris',
+  'Europe/Berlin',
+  'Asia/Tokyo',
+  'Asia/Shanghai',
+  'Asia/Kolkata',
+  'Australia/Sydney',
+  'Pacific/Auckland',
+];
+
 export default function SettingsModal({ 
   isOpen, 
   onClose, 
@@ -18,9 +38,28 @@ export default function SettingsModal({
   onUpdateSettings,
   notes,
 }: SettingsModalProps) {
+  const { user } = useAuth();
+  
   const handleExportPDF = () => {
     exportNotesToPDF(notes);
   };
+
+  // Detect user's timezone
+  const detectedTimezone = useMemo(() => 
+    Intl.DateTimeFormat().resolvedOptions().timeZone, 
+  []);
+
+  // Include detected timezone if not in common list
+  const timezoneOptions = useMemo(() => {
+    const options = [...COMMON_TIMEZONES];
+    if (!options.includes(detectedTimezone)) {
+      options.unshift(detectedTimezone);
+    }
+    if (!options.includes(settings.timezone)) {
+      options.unshift(settings.timezone);
+    }
+    return [...new Set(options)].sort();
+  }, [detectedTimezone, settings.timezone]);
 
   return (
     <AnimatePresence>
@@ -52,9 +91,79 @@ export default function SettingsModal({
               </div>
 
               <div className="space-y-6">
-                {/* Reminder Settings */}
-                <div className="space-y-4">
-                  <h3 className="text-sm font-semibold text-foreground">Weekly Reminder</h3>
+                {/* Email Reminders - Only show for logged in users */}
+                {user && (
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <Mail className="w-4 h-4 text-primary" />
+                      <h3 className="text-sm font-semibold text-foreground">Email Reminders</h3>
+                    </div>
+                    
+                    <label className="flex items-center justify-between cursor-pointer">
+                      <span className="text-sm">Enable weekly email reminders</span>
+                      <input
+                        type="checkbox"
+                        checked={settings.emailRemindersEnabled}
+                        onChange={(e) => onUpdateSettings({ emailRemindersEnabled: e.target.checked })}
+                        className="w-5 h-5 rounded accent-primary"
+                      />
+                    </label>
+                    
+                    {settings.emailRemindersEnabled && (
+                      <>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="text-caption block mb-2">Day</label>
+                            <select
+                              value={settings.emailReminderDay}
+                              onChange={(e) => onUpdateSettings({ emailReminderDay: e.target.value as 'Sunday' | 'Monday' })}
+                              className="input-premium py-2"
+                            >
+                              <option value="Sunday">Sunday</option>
+                              <option value="Monday">Monday</option>
+                            </select>
+                          </div>
+                          
+                          <div>
+                            <label className="text-caption block mb-2">Time</label>
+                            <input
+                              type="time"
+                              value={settings.emailReminderTime}
+                              onChange={(e) => onUpdateSettings({ emailReminderTime: e.target.value })}
+                              className="input-premium py-2"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="text-caption block mb-2">Timezone</label>
+                          <select
+                            value={settings.timezone}
+                            onChange={(e) => onUpdateSettings({ timezone: e.target.value })}
+                            className="input-premium py-2"
+                          >
+                            {timezoneOptions.map((tz) => (
+                              <option key={tz} value={tz}>
+                                {tz.replace(/_/g, ' ')}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        
+                        <p className="text-caption">
+                          We only email once per week. You can turn this off anytime.
+                        </p>
+                      </>
+                    )}
+                  </div>
+                )}
+
+                {/* In-App Reminder Settings */}
+                <div className={`space-y-4 ${user ? 'pt-4 border-t border-border' : ''}`}>
+                  <div className="flex items-center gap-2">
+                    <Bell className="w-4 h-4 text-primary" />
+                    <h3 className="text-sm font-semibold text-foreground">In-App Reminder</h3>
+                  </div>
                   
                   <div className="grid grid-cols-2 gap-4">
                     <div>
