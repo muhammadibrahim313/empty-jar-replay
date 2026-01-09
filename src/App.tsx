@@ -29,6 +29,9 @@ const App = () => (
             <Route path="/auth/signup" element={<SignUp />} />
             <Route path="/auth/signin" element={<SignIn />} />
             <Route path="/auth/forgot" element={<ForgotPassword />} />
+            {/* Password recovery */}
+            <Route path="/auth/reset" element={<ResetPassword />} />
+            {/* Backward-compat for older links */}
             <Route path="/auth/reset-password" element={<ResetPassword />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
