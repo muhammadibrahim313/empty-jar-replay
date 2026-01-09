@@ -102,9 +102,13 @@ export default function SignUp() {
               Check your email to verify your jar
             </h1>
 
-            <p className="text-muted-foreground mb-8">
+            <p className="text-muted-foreground mb-4">
               We sent a verification link to <strong className="text-foreground">{email}</strong>. 
               Once verified, you'll be signed in.
+            </p>
+
+            <p className="text-sm text-muted-foreground/80 mb-8">
+              Can't find it? Check your spam folder — sometimes the magic link ends up there.
             </p>
 
             <div className="space-y-3">
