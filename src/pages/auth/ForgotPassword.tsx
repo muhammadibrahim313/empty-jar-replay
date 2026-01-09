@@ -30,7 +30,7 @@ export default function ForgotPassword() {
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(
         email.trim(),
         {
-          redirectTo: `${window.location.origin}/app`,
+          redirectTo: `${window.location.origin}/auth/reset-password`,
         }
       );
 
@@ -64,8 +64,12 @@ export default function ForgotPassword() {
               Check your email
             </h1>
 
-            <p className="text-muted-foreground mb-8">
+            <p className="text-muted-foreground mb-4">
               We sent a password reset link to <strong className="text-foreground">{email}</strong>.
+            </p>
+
+            <p className="text-sm text-muted-foreground/80 mb-8">
+              Can't find it? Check your spam folder — sometimes the reset email ends up there.
             </p>
 
             <Link to="/auth/signin" className="btn-primary w-full py-3.5">
