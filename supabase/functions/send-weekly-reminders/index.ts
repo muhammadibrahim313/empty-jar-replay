@@ -4,11 +4,6 @@ import { Resend } from "https://esm.sh/resend@2.0.0";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
-
 // Email subject rotation
 const SUBJECT_OPTIONS = [
   "Your Empty Jar reminder 🫙",
@@ -125,10 +120,25 @@ function generateEmailHtml(userName: string | null, appUrl: string): string {
 }
 
 const handler = async (req: Request): Promise<Response> => {
-  // Handle CORS preflight
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+  // This function should only be called by pg_cron (scheduled job)
+  // Verify the request has the correct authorization
+  const authHeader = req.headers.get("Authorization");
+  const expectedKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  
+  // Check if the request is authorized (must include service role key or anon key from cron)
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
+  const providedToken = authHeader?.replace("Bearer ", "");
+  
+  // Only allow requests with valid authorization from cron job
+  if (!authHeader || (providedToken !== expectedKey && providedToken !== anonKey)) {
+    console.error("Unauthorized request - missing or invalid authorization");
+    return new Response(
+      JSON.stringify({ error: "Unauthorized" }),
+      { status: 401, headers: { "Content-Type": "application/json" } }
+    );
   }
+  
+  console.log("Authorized request received");
 
   try {
     console.log("Starting weekly reminder check...");
@@ -248,7 +258,7 @@ const handler = async (req: Request): Promise<Response> => {
       }),
       {
         status: 200,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
+        headers: { "Content-Type": "application/json" },
       }
     );
   } catch (error: any) {
@@ -257,7 +267,7 @@ const handler = async (req: Request): Promise<Response> => {
       JSON.stringify({ error: error.message }),
       {
         status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
+        headers: { "Content-Type": "application/json" },
       }
     );
   }
