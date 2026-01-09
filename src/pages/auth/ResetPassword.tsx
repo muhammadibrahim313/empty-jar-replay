@@ -24,35 +24,29 @@ export default function ResetPassword() {
   const [isValidSession, setIsValidSession] = useState<boolean | null>(null);
 
   useEffect(() => {
-    // Check if we have a valid recovery session
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      // Check if this is a recovery session (user came from reset email)
+    // Set up auth state listener FIRST to catch PASSWORD_RECOVERY event
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setIsValidSession(true);
+      } else if (event === 'SIGNED_IN' && session) {
+        // User might already be signed in from the recovery flow
+        setIsValidSession(true);
+      }
+    });
+
+    // THEN check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         setIsValidSession(true);
       } else {
-        // Listen for the PASSWORD_RECOVERY event
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-          if (event === 'PASSWORD_RECOVERY') {
-            setIsValidSession(true);
-          } else if (event === 'SIGNED_IN' && session) {
-            setIsValidSession(true);
-          }
-        });
-
-        // Give it a moment to process the URL hash
+        // Give the auth state change listener time to process the URL hash
         setTimeout(() => {
-          if (isValidSession === null) {
-            setIsValidSession(false);
-          }
-        }, 2000);
-
-        return () => subscription.unsubscribe();
+          setIsValidSession((current) => current === null ? false : current);
+        }, 3000);
       }
-    };
+    });
 
-    checkSession();
+    return () => subscription.unsubscribe();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -77,12 +71,9 @@ export default function ResetPassword() {
         return;
       }
 
+      // Sign out so user must sign in with new password
+      await supabase.auth.signOut();
       setIsSuccess(true);
-      
-      // Redirect to app after 2 seconds
-      setTimeout(() => {
-        navigate('/app');
-      }, 2000);
     } catch (err) {
       setError('Something went wrong. Please try again.');
     } finally {
@@ -152,15 +143,15 @@ export default function ResetPassword() {
             </div>
 
             <h1 className="text-2xl font-display font-medium mb-3">
-              Password updated!
+              Password updated
             </h1>
 
             <p className="text-muted-foreground mb-8">
-              Your password has been successfully reset. Redirecting you to the app...
+              Your password has been successfully reset. Please sign in with your new password.
             </p>
 
-            <Link to="/app" className="btn-primary w-full py-3.5">
-              Go to app
+            <Link to="/auth/signin" className="btn-primary w-full py-3.5">
+              Go to sign in
             </Link>
           </div>
         </motion.div>
