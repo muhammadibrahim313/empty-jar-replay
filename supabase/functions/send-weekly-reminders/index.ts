@@ -216,7 +216,8 @@ const handler = async (req: Request): Promise<Response> => {
       console.log(`Sending reminder to ${userEmail}...`);
       
       const { error: emailError } = await resend.emails.send({
-        from: "Empty Jar <onboarding@resend.dev>",
+        from: "Empty Jar <no-reply@empty-jar.ibrahimqasmi.com>",
+        reply_to: "support@empty-jar.ibrahimqasmi.com",
         to: [userEmail],
         subject: subject,
         html: generateEmailHtml(userName, appUrl),
