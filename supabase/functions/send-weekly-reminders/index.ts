@@ -121,24 +121,22 @@ function generateEmailHtml(userName: string | null, appUrl: string): string {
 
 const handler = async (req: Request): Promise<Response> => {
   // This function should only be called by pg_cron (scheduled job)
-  // Verify the request has the correct authorization
+  // Verify the request has the service role key for authentication
   const authHeader = req.headers.get("Authorization");
-  const expectedKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  
-  // Check if the request is authorized (must include service role key or anon key from cron)
-  const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   const providedToken = authHeader?.replace("Bearer ", "");
   
-  // Only allow requests with valid authorization from cron job
-  if (!authHeader || (providedToken !== expectedKey && providedToken !== anonKey)) {
-    console.error("Unauthorized request - missing or invalid authorization");
+  // Only allow requests with valid service role key (not anon key)
+  // This ensures only authorized server-side calls can trigger email sends
+  if (!authHeader || providedToken !== serviceRoleKey) {
+    console.error("Unauthorized request - missing or invalid service role key");
     return new Response(
       JSON.stringify({ error: "Unauthorized" }),
       { status: 401, headers: { "Content-Type": "application/json" } }
     );
   }
   
-  console.log("Authorized request received");
+  console.log("Authorized request received (service role key verified)");
 
   try {
     console.log("Starting weekly reminder check...");
