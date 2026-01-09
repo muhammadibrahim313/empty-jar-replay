@@ -131,43 +131,6 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    // Check for test mode
-    let testEmail: string | null = null;
-    try {
-      const body = await req.json();
-      if (body.test && body.email) {
-        testEmail = body.email;
-        console.log(`Test mode: Sending test email to ${testEmail}`);
-        
-        const appUrl = "https://bgqwtrpxdoputisbzilt.lovableproject.com";
-        const subject = "🧪 Test: " + SUBJECT_OPTIONS[0];
-        
-        const { error: emailError } = await resend.emails.send({
-          from: "Empty Jar <no-reply@empty-jar.ibrahimqasmi.com>",
-          reply_to: "support@empty-jar.ibrahimqasmi.com",
-          to: [testEmail!],
-          subject: subject,
-          html: generateEmailHtml("Test User", appUrl),
-        });
-
-        if (emailError) {
-          console.error("Test email error:", emailError);
-          return new Response(
-            JSON.stringify({ success: false, error: emailError }),
-            { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
-          );
-        }
-
-        console.log(`Test email sent successfully to ${testEmail}`);
-        return new Response(
-          JSON.stringify({ success: true, message: `Test email sent to ${testEmail}` }),
-          { status: 200, headers: { "Content-Type": "application/json", ...corsHeaders } }
-        );
-      }
-    } catch (e) {
-      // Not JSON or no test mode, continue with normal flow
-    }
-
     console.log("Starting weekly reminder check...");
     
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
