@@ -35,11 +35,15 @@ export function useNotes() {
   const currentWeekKey = useMemo(() => getWeekKey(new Date()), []);
   const currentYear = useMemo(() => new Date().getFullYear(), []);
 
-  // Online/offline detection
+  // Online/offline detection - uses refs to avoid recreating handlers
   useEffect(() => {
     const handleOnline = () => {
       setIsOnline(true);
-      syncPendingChanges();
+      // Only sync if there are pending changes - don't call every time
+      const pending = loadPendingChanges();
+      if (pending.length > 0) {
+        syncPendingChanges();
+      }
     };
     const handleOffline = () => setIsOnline(false);
 
@@ -50,7 +54,7 @@ export function useNotes() {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, []);
+  }, [user]);
 
   // Load data based on auth state
   useEffect(() => {
@@ -71,6 +75,39 @@ export function useNotes() {
       setIsLoading(false);
     }
   }, [user, authLoading]);
+
+  // Background refresh - silently updates data without triggering loading state
+  // This prevents the UI from unmounting (which would lose unsaved form data)
+  const refreshDataInBackground = async () => {
+    if (!user) return;
+
+    try {
+      const { data: notesData } = await supabase
+        .from('notes')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('week_key', { ascending: true });
+
+      if (notesData) {
+        const mappedNotes: Note[] = notesData.map(n => ({
+          id: n.id,
+          weekKey: n.week_key,
+          createdAt: n.created_at,
+          updatedAt: n.updated_at,
+          title: n.title || undefined,
+          body: n.body,
+          mood: n.mood as 1 | 2 | 3 | 4 | 5,
+          momentType: n.moment_type as Note['momentType'],
+          tags: n.tags || [],
+          isBackfill: n.is_backfilled || false,
+        }));
+        setNotes(mappedNotes);
+      }
+    } catch (error) {
+      // Silently fail - this is a background refresh
+      console.error('Background refresh failed:', error);
+    }
+  };
 
   // Sync pending changes when coming online
   const syncPendingChanges = async () => {
@@ -98,7 +135,8 @@ export function useNotes() {
     }
 
     clearPendingChanges();
-    loadUserData();
+    // Use background refresh instead of full loadUserData to avoid resetting UI
+    refreshDataInBackground();
   };
 
   // Load user data from database
